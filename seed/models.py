@@ -19,6 +19,7 @@ db = SQLAlchemy()
 
 # noinspection PyClassHasNoInit
 class DeploymentType:
+    DOCKER = 'DOCKER'
     SUPERVISOR = 'SUPERVISOR'
     MARATHON = 'MARATHON'
     KUBERNETES = 'KUBERNETES'
@@ -41,6 +42,31 @@ class DeploymentStatus:
                 if n[0] != '_' and n != 'values']
 
 
+class Client(db.Model):
+    """ Service client configuration """
+    __tablename__ = 'client'
+
+    # Fields
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=False)
+    enabled = Column(Boolean, nullable=False)
+    token = Column(String(256), nullable=False)
+
+    # Associations
+    deployment_id = Column(Integer,
+                           ForeignKey("deployment.id"), nullable=False)
+    deployment = relationship(
+        "Deployment",
+        foreign_keys=[deployment_id])
+
+    def __unicode__(self):
+        return self.name
+
+    def __repr__(self):
+        return '<Instance {}: {}>: {}'.format(self.__class__, self.id,
+                                              unicode(self))
+
+
 class Deployment(db.Model):
     """ Deployment """
     __tablename__ = 'deployment'
@@ -55,6 +81,10 @@ class Deployment(db.Model):
     enabled = Column(Boolean, nullable=False)
     current_status = Column(Enum(*DeploymentStatus.values(),
                                  name='DeploymentStatusEnumType'), nullable=False)
+    attempts = Column(Integer,
+                      default=0, nullable=False)
+    log = Column(LONGTEXT)
+    entry_point = Column(String(800), nullable=False)
 
     # Associations
     target_id = Column(Integer,
@@ -62,12 +92,36 @@ class Deployment(db.Model):
     target = relationship(
         "DeploymentTarget",
         foreign_keys=[target_id])
+    image_id = Column(Integer,
+                      ForeignKey("deployment_image.id"), nullable=False)
+    image = relationship(
+        "DeploymentImage",
+        foreign_keys=[image_id])
 
     def __unicode__(self):
         return self.description
 
     def __repr__(self):
-        return '<Instance {}: {}>'.format(self.__class__, self.id)
+        return '<Instance {}: {}>: {}'.format(self.__class__, self.id,
+                                              unicode(self))
+
+
+class DeploymentImage(db.Model):
+    """ Deployment image """
+    __tablename__ = 'deployment_image'
+
+    # Fields
+    id = Column(Integer, primary_key=True)
+    name = Column(String(100), nullable=False)
+    tag = Column(String(100), nullable=False)
+    enabled = Column(Boolean, nullable=False)
+
+    def __unicode__(self):
+        return self.name
+
+    def __repr__(self):
+        return '<Instance {}: {}>: {}'.format(self.__class__, self.id,
+                                              unicode(self))
 
 
 class DeploymentTarget(db.Model):
@@ -88,5 +142,6 @@ class DeploymentTarget(db.Model):
         return self.name
 
     def __repr__(self):
-        return '<Instance {}: {}>'.format(self.__class__, self.id)
+        return '<Instance {}: {}>: {}'.format(self.__class__, self.id,
+                                              unicode(self))
 

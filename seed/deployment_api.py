@@ -15,7 +15,8 @@ class DeploymentListApi(Resource):
             only = [f.strip() for f in
                     request.args.get('fields').split(',')]
         else:
-            only = ('id', 'name') if request.args.get('simple', 'false') == 'true' else None
+            only = ('id', 'name') if request.args.get('simple',
+                                                      'false') == 'true' else None
         enabled_filter = request.args.get('enabled')
         if enabled_filter:
             deployments = Deployment.query.filter(
@@ -94,7 +95,8 @@ class DeploymentDetailApi(Resource):
         result_code = 404
 
         if request.json:
-            request_schema = partial_schema_factory(DeploymentCreateRequestSchema)
+            request_schema = partial_schema_factory(
+                DeploymentCreateRequestSchema)
             # Ignore missing fields to allow partial updates
             form = request_schema.load(request.json, partial=True)
             response_schema = DeploymentItemResponseSchema()
@@ -118,6 +120,5 @@ class DeploymentDetailApi(Resource):
                     db.session.rollback()
             else:
                 result = dict(status="ERROR", message="Invalid data",
-                            errors=form.errors)
+                              errors=form.errors)
         return result, result_code
-
