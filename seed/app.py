@@ -71,6 +71,9 @@ def main(is_main_module):
         app.config['SQLALCHEMY_POOL_SIZE'] = 10
         app.config['SQLALCHEMY_POOL_RECYCLE'] = 240
 
+        # RQ config
+        app.config['RQ_REDIS_URL'] = config['servers']['redis_url']
+
         app.config.update(config.get('config', {}))
         app.config['SEED_CONFIG'] = config
 

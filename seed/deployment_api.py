@@ -1,14 +1,28 @@
 # -*- coding: utf-8 -*-}
-from app_auth import requires_auth
-from flask import request, current_app
-from flask_restful import Resource
-
 import logging
-from schema import *
-from flask_babel import gettext
 
+from app_auth import requires_auth
+from flask import request, current_app, g as flask_globals
+from flask_babel import gettext
+from flask_restful import Resource
+from schema import *
+from seed import jobs
 
 log = logging.getLogger(__name__)
+
+
+def schedule_deployment_job(deployment_id):
+    # config = current_app.config['SEED_CONFIG']
+    # q = Queue(connection=Redis(config['servers']['redis_url']))
+    # q.enqueue_call(jobs.deploy, args=(deployment_id,), timeout=60,
+    #                result_ttl=3600)
+    jobs.deploy.queue(deployment_id)
+
+
+def translate_validation(validation_errors):
+    for field, errors in validation_errors.items():
+        validation_errors[field] = [gettext(error) for error in errors]
+    return validation_errors
 
 
 class DeploymentListApi(Resource):
@@ -23,7 +37,7 @@ class DeploymentListApi(Resource):
             only = [f.strip() for f in
                     request.args.get('fields').split(',')]
         else:
-            only = ('id', ) if request.args.get(
+            only = ('id',) if request.args.get(
                 'simple', 'false') == 'true' else None
         enabled_filter = request.args.get('enabled')
         if enabled_filter:
@@ -37,29 +51,39 @@ class DeploymentListApi(Resource):
         return {
             'status': 'OK',
             'data': DeploymentListResponseSchema(
-                    many=True, only=only).dump(deployments).data
+                many=True, only=only).dump(deployments).data
         }
 
     @requires_auth
     def post(self):
-        result = {'status': 'ERROR', 
+        result = {'status': 'ERROR',
                   'message': gettext("Missing json in the request body")}
         return_code = 400
-        
         if request.json is not None:
             request_schema = DeploymentCreateRequestSchema()
             response_schema = DeploymentItemResponseSchema()
+
+            request.json['created'] = datetime.datetime.utcnow().isoformat()
+            request.json['updated'] = request.json['created']
+            request.json['user_id'] = flask_globals.user.id
+            request.json['user_login'] = flask_globals.user.login
+            request.json['user_name'] = flask_globals.user.name
+
             form = request_schema.load(request.json)
+
             if form.errors:
                 result = {'status': 'ERROR',
                           'message': gettext("Validation error"),
-                          'errors': form.errors}
+                          'errors': translate_validation(form.errors)}
             else:
                 try:
                     if log.isEnabledFor(logging.DEBUG):
                         log.debug(gettext('Adding %s'), self.human_name)
                     deployment = form.data
+
                     db.session.add(deployment)
+                    schedule_deployment_job(deployment.id)
+
                     db.session.commit()
                     result = response_schema.dump(deployment).data
                     return_code = 200
@@ -78,6 +102,7 @@ class DeploymentListApi(Resource):
 
 class DeploymentDetailApi(Resource):
     """ REST API for a single instance of class Deployment """
+
     def __init__(self):
         self.human_name = gettext('Deployment')
 
