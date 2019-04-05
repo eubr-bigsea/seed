@@ -24,7 +24,7 @@ def load_json(str_value):
         return "Error loading JSON"
 
 
-# region Protected\s*
+# region Protected
 # endregion
 
 
@@ -91,12 +91,12 @@ class DeploymentCreateRequestSchema(Schema):
     user_login = fields.String(required=True)
     user_name = fields.String(required=True)
     enabled = fields.Boolean(required=True, missing=False)
-    current_status = fields.String(required=True, missing=DeploymentStatus.EDITING,
+    current_status = fields.String(required=True, missing=DeploymentStatus.PENDING,
                                    validate=[OneOf(DeploymentStatus.__dict__.keys())])
     attempts = fields.Integer(required=True, missing=0)
     entry_point = fields.String(required=False, allow_none=True)
-    target_id = fields.Integer(required=False, allow_none=True)
-    image_id = fields.Integer(required=False, allow_none=True)
+    target_id = fields.Integer(required=True)
+    image_id = fields.Integer(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -117,17 +117,17 @@ class DeploymentListResponseSchema(Schema):
     command = fields.String(required=False, allow_none=True)
     job_id = fields.Integer(required=False, allow_none=True)
     enabled = fields.Boolean(required=True, missing=False)
-    current_status = fields.String(required=True, missing=DeploymentStatus.EDITING,
+    current_status = fields.String(required=True, missing=DeploymentStatus.PENDING,
                                    validate=[OneOf(DeploymentStatus.__dict__.keys())])
     attempts = fields.Integer(required=True, missing=0)
     log = fields.String(required=False, allow_none=True)
     entry_point = fields.String(required=False, allow_none=True)
     target = fields.Nested(
         'seed.schema.DeploymentTargetListResponseSchema',
-        allow_none=True)
+        required=True)
     image = fields.Nested(
         'seed.schema.DeploymentImageListResponseSchema',
-        allow_none=True)
+        required=True)
     user = fields.Function(
         lambda x: {
             "id": x.user_id,
@@ -137,6 +137,7 @@ class DeploymentListResponseSchema(Schema):
         lambda x: {
             "id": x.workflow_id,
             "name": x.workflow_name})
+    job = fields.Function(lambda x: {"id": x.job_id})
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -155,26 +156,28 @@ class DeploymentItemResponseSchema(Schema):
     created = fields.DateTime(required=True)
     updated = fields.DateTime(required=True)
     command = fields.String(required=False, allow_none=True)
-    workflow_name = fields.String(required=True)
-    workflow_id = fields.Integer(required=True)
-    job_id = fields.Integer(required=False, allow_none=True)
     enabled = fields.Boolean(required=True, missing=False)
-    current_status = fields.String(required=True, missing=DeploymentStatus.EDITING,
+    current_status = fields.String(required=True, missing=DeploymentStatus.PENDING,
                                    validate=[OneOf(DeploymentStatus.__dict__.keys())])
     attempts = fields.Integer(required=True, missing=0)
     log = fields.String(required=False, allow_none=True)
     entry_point = fields.String(required=False, allow_none=True)
     target = fields.Nested(
         'seed.schema.DeploymentTargetItemResponseSchema',
-        allow_none=True)
+        required=True)
     image = fields.Nested(
         'seed.schema.DeploymentImageItemResponseSchema',
-        allow_none=True)
+        required=True)
     user = fields.Function(
         lambda x: {
             "id": x.user_id,
             "name": x.user_name,
             "login": x.user_login})
+    workflow = fields.Function(
+        lambda x: {
+            "id": x.workflow_id,
+            "name": x.workflow_name})
+    job = fields.Function(lambda x: {"id": x.job_id})
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -371,6 +374,7 @@ class DeploymentTargetCreateRequestSchema(Schema):
     enabled = fields.Boolean(required=True)
     target_type = fields.String(required=True,
                                 validate=[OneOf(DeploymentType.__dict__.keys())])
+    descriptor = fields.String(required=False, allow_none=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -390,6 +394,7 @@ class DeploymentTargetListResponseSchema(Schema):
     enabled = fields.Boolean(required=True)
     target_type = fields.String(required=True,
                                 validate=[OneOf(DeploymentType.__dict__.keys())])
+    descriptor = fields.String(required=False, allow_none=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -411,27 +416,7 @@ class DeploymentTargetItemResponseSchema(Schema):
     enabled = fields.Boolean(required=True)
     target_type = fields.String(required=True,
                                 validate=[OneOf(DeploymentType.__dict__.keys())])
-
-    # noinspection PyUnresolvedReferences
-    @post_load
-    def make_object(self, data):
-        """ Deserialize data into an instance of DeploymentTarget"""
-        return DeploymentTarget(**data)
-
-    class Meta:
-        ordered = True
-
-
-class DeploymentTargetCreateRequestSchema(Schema):
-    """ JSON serialization schema """
-    id = fields.Integer(required=True)
-    name = fields.String(required=True)
-    description = fields.String(required=False, allow_none=True)
-    url = fields.String(required=True)
-    authentication_info = fields.String(required=False, allow_none=True)
-    enabled = fields.Boolean(required=True)
-    target_type = fields.String(required=True,
-                                validate=[OneOf(DeploymentType.__dict__.keys())])
+    descriptor = fields.String(required=False, allow_none=True)
 
     # noinspection PyUnresolvedReferences
     @post_load

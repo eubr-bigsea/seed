@@ -32,11 +32,12 @@ class DeploymentType:
 
 # noinspection PyClassHasNoInit
 class DeploymentStatus:
-    STOPPED = 'STOPPED'
     RUNNING = 'RUNNING'
+    STOPPED = 'STOPPED'
+    SUSPENDED = 'SUSPENDED'
     EDITING = 'EDITING'
     SAVED = 'SAVED'
-    SUSPENDED = 'SUSPENDED'
+    PENDING = 'PENDING'
 
     @staticmethod
     def values():
@@ -91,7 +92,7 @@ class Deployment(db.Model):
                      default=False, nullable=False)
     current_status = Column(Enum(*DeploymentStatus.values(),
                                  name='DeploymentStatusEnumType'),
-                            default=DeploymentStatus.EDITING, nullable=False)
+                            default=DeploymentStatus.PENDING, nullable=False)
     attempts = Column(Integer,
                       default=0, nullable=False)
     log = Column(String(16000000))
@@ -99,12 +100,12 @@ class Deployment(db.Model):
 
     # Associations
     target_id = Column(Integer,
-                       ForeignKey("deployment_target.id"))
+                       ForeignKey("deployment_target.id"), nullable=False)
     target = relationship(
         "DeploymentTarget",
         foreign_keys=[target_id])
     image_id = Column(Integer,
-                      ForeignKey("deployment_image.id"))
+                      ForeignKey("deployment_image.id"), nullable=False)
     image = relationship(
         "DeploymentImage",
         foreign_keys=[image_id])
@@ -194,10 +195,11 @@ class DeploymentTarget(db.Model):
     name = Column(String(100), nullable=False)
     description = Column(String(400))
     url = Column(String(500), nullable=False)
-    authentication_info = Column(String(500))
+    authentication_info = Column(String(2500))
     enabled = Column(Boolean, nullable=False)
     target_type = Column(Enum(*DeploymentType.values(),
                               name='DeploymentTypeEnumType'), nullable=False)
+    descriptor = Column(String(16000000))
 
     def __unicode__(self):
         return self.name
