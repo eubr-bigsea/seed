@@ -44,7 +44,7 @@ def upgrade():
     sa.Column('user_name', sa.String(length=100), nullable=False),
     sa.Column('enabled', sa.Boolean(), nullable=False),
     sa.Column('current_status',
-              sa.Enum('RUNNING', 'SUSPENDED', 'STOPPED' 'SAVED', 'EDITING', 'PENDING',
+              sa.Enum('RUNNING', 'SUSPENDED', 'STOPPED' 'SAVED', 'EDITING', 'PENDING', 'ERROR', 'DEPLOYED',
                       name='DeploymentStatusEnumType'), nullable=False),
     sa.Column('attempts', sa.Integer(), nullable=False),
     sa.Column('log', mysql.LONGTEXT(), nullable=True),
