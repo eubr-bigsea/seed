@@ -17,11 +17,11 @@ PYTHONPATH=. SEED_CONFIG=../seed.yaml python seed/app.py
 To start workers, you need to run the command from the Seed project directory:
 
 ```
-$ rq worker
+$ SEED_CONFIG=../seed.yaml FLASK_APP=seed/app.py flask rq worker
 ```
 `rq` will connect to Redis running in the local host. If you want it to connect to a different host, use the following command,
 changing the url accordingly:
 
 ```
-$ rq worker --url redis://:secrets@example.com:6379/1
+SEED_CONFIG=../seed.yaml FLASK_APP=seed/app.py flask rq worker --url redis://:secrets@example.com:6379/1
 ```

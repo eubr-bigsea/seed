@@ -10,15 +10,16 @@ import sqlalchemy_utils
 import yaml
 from flask import Flask, request
 from flask_admin import Admin
+from flask_admin.babel import gettext
 from flask_babel import get_locale, Babel
 from flask_cors import CORS
 from flask_restful import Api
 from models import db
+from seed import rq
 from seed.deployment_api import DeploymentDetailApi
 from seed.deployment_api import DeploymentListApi
 from seed.deployment_target_api import DeploymentTargetDetailApi
 from seed.deployment_target_api import DeploymentTargetListApi
-from seed.jobs import rq
 
 sqlalchemy_utils.i18n.get_locale = get_locale
 
@@ -50,7 +51,20 @@ for path, view in mappings.iteritems():
 
 @babel.localeselector
 def get_locale():
-    return request.args.get('lang', 'en')
+    return request.args.get('lang') or \
+           request.accept_languages.best_match(['pt', 'en']) or 'pt'
+
+
+def marshmallow_errors():
+    """
+    Static list of validation errors keys used in marshmallow, required in order
+    to extract messages by pybabel
+    """
+    gettext('Missing data for required field.')
+    gettext('Not a valid integer.')
+    gettext('Not a valid datetime.')
+
+#
 
 
 def main(is_main_module):
@@ -71,8 +85,10 @@ def main(is_main_module):
         app.config['SQLALCHEMY_POOL_SIZE'] = 10
         app.config['SQLALCHEMY_POOL_RECYCLE'] = 240
 
-        # RQ config
         app.config['RQ_REDIS_URL'] = config['servers']['redis_url']
+
+        app.config['BABEL_TRANSLATION_DIRECTORIES'] = 'i18n/locales'
+        app.config['BABEL_DEFAULT_LOCALE'] = 'UTC'
 
         app.config.update(config.get('config', {}))
         app.config['SEED_CONFIG'] = config
