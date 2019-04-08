@@ -34,7 +34,9 @@ class DeploymentType:
 class DeploymentStatus:
     RUNNING = 'RUNNING'
     STOPPED = 'STOPPED'
+    DEPLOYED = 'DEPLOYED'
     SUSPENDED = 'SUSPENDED'
+    ERROR = 'ERROR'
     EDITING = 'EDITING'
     SAVED = 'SAVED'
     PENDING = 'PENDING'

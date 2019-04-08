@@ -6,17 +6,18 @@ from flask import request, current_app, g as flask_globals
 from flask_babel import gettext
 from flask_restful import Resource
 from schema import *
-from seed import jobs
+
 
 log = logging.getLogger(__name__)
 
 
-def schedule_deployment_job(deployment_id):
+def schedule_deployment_job(deployment_id, locale):
+    from seed import jobs
     # config = current_app.config['SEED_CONFIG']
     # q = Queue(connection=Redis(config['servers']['redis_url']))
     # q.enqueue_call(jobs.deploy, args=(deployment_id,), timeout=60,
     #                result_ttl=3600)
-    jobs.deploy.queue(deployment_id)
+    jobs.deploy.queue(deployment_id, locale)
 
 
 def translate_validation(validation_errors):
@@ -82,7 +83,8 @@ class DeploymentListApi(Resource):
                     deployment = form.data
 
                     db.session.add(deployment)
-                    schedule_deployment_job(deployment.id)
+                    db.session.flush()
+                    schedule_deployment_job(deployment.id, 'pt')
 
                     db.session.commit()
                     result = response_schema.dump(deployment).data

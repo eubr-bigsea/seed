@@ -1,0 +1,168 @@
+# Translations template for PROJECT.
+# Copyright (C) 2019 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2019-04-08 09:27-0300\n"
+"PO-Revision-Date: 2019-04-08 09:27-0300\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+"X-Generator: Poedit 1.8.7.1\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: seed/app.py:63
+msgid "Missing data for required field."
+msgstr "Dados ausentes para campo obrigatório."
+
+#: seed/app.py:64
+msgid "Not a valid integer."
+msgstr "Não é um número inteiro válido."
+
+#: seed/app.py:65
+msgid "Not a valid datetime."
+msgstr "Não é um valor para data/hora válido."
+
+#: seed/client_api.py:18 seed/client_api.py:82
+msgid "Client"
+msgstr "Cliente"
+
+#: seed/client_api.py:36 seed/deployment_api.py:51
+#: seed/deployment_image_api.py:36 seed/deployment_log_api.py:31
+#: seed/deployment_metric_api.py:36 seed/deployment_target_api.py:36
+#, python-format
+msgid "Listing %s"
+msgstr "Listando %s"
+
+#: seed/client_api.py:46 seed/deployment_api.py:61
+#: seed/deployment_image_api.py:46 seed/deployment_log_api.py:41
+#: seed/deployment_metric_api.py:46 seed/deployment_target_api.py:46
+msgid "Missing json in the request body"
+msgstr "JSON ausente no corpo da requisição"
+
+#: seed/client_api.py:55 seed/deployment_api.py:77
+#: seed/deployment_image_api.py:55 seed/deployment_log_api.py:50
+#: seed/deployment_metric_api.py:55 seed/deployment_target_api.py:55
+msgid "Validation error"
+msgstr "Erro de validação"
+
+#: seed/client_api.py:60 seed/deployment_api.py:82
+#: seed/deployment_image_api.py:60 seed/deployment_log_api.py:55
+#: seed/deployment_metric_api.py:60 seed/deployment_target_api.py:60
+#, python-format
+msgid "Adding %s"
+msgstr "Adicionando %s"
+
+#: seed/client_api.py:68 seed/client_api.py:126 seed/client_api.py:173
+#: seed/deployment_api.py:94 seed/deployment_api.py:153
+#: seed/deployment_api.py:200 seed/deployment_image_api.py:68
+#: seed/deployment_image_api.py:126 seed/deployment_image_api.py:173
+#: seed/deployment_log_api.py:63 seed/deployment_log_api.py:121
+#: seed/deployment_log_api.py:168 seed/deployment_metric_api.py:68
+#: seed/deployment_metric_api.py:126 seed/deployment_metric_api.py:173
+#: seed/deployment_target_api.py:68 seed/deployment_target_api.py:126
+#: seed/deployment_target_api.py:173
+msgid "Internal error"
+msgstr "Erro interno"
+
+#: seed/client_api.py:88 seed/deployment_api.py:115
+#: seed/deployment_image_api.py:88 seed/deployment_log_api.py:83
+#: seed/deployment_metric_api.py:88 seed/deployment_target_api.py:88
+#, python-format
+msgid "Retrieving %s (id=%s)"
+msgstr "Recuperando %s (id=%s)"
+
+#: seed/client_api.py:102 seed/deployment_api.py:129
+#: seed/deployment_image_api.py:102 seed/deployment_log_api.py:97
+#: seed/deployment_metric_api.py:102 seed/deployment_target_api.py:102
+#, python-format
+msgid "%s not found (id=%s)"
+msgstr "%s não encontrado (id=%s)"
+
+#: seed/client_api.py:112 seed/deployment_api.py:139
+#: seed/deployment_image_api.py:112 seed/deployment_log_api.py:107
+#: seed/deployment_metric_api.py:112 seed/deployment_target_api.py:112
+#, python-format
+msgid "Deleting %s (id=%s)"
+msgstr "Excluindo %s (id=%s)"
+
+#: seed/client_api.py:121 seed/deployment_api.py:148
+#: seed/deployment_image_api.py:121 seed/deployment_log_api.py:116
+#: seed/deployment_metric_api.py:121 seed/deployment_target_api.py:121
+#, python-format
+msgid "%s deleted with success!"
+msgstr "%s excluído com sucesso"
+
+#: seed/client_api.py:135 seed/deployment_api.py:162
+#: seed/deployment_image_api.py:135 seed/deployment_log_api.py:130
+#: seed/deployment_metric_api.py:135 seed/deployment_target_api.py:135
+#, python-format
+msgid "%s not found (id=%s)."
+msgstr "%s não encontrado (id=%s)"
+
+#: seed/client_api.py:143 seed/deployment_api.py:170
+#: seed/deployment_image_api.py:143 seed/deployment_log_api.py:138
+#: seed/deployment_metric_api.py:143 seed/deployment_target_api.py:143
+msgid "Insufficient data."
+msgstr "Dados insuficientes."
+
+#: seed/client_api.py:147 seed/deployment_api.py:174
+#: seed/deployment_image_api.py:147 seed/deployment_log_api.py:142
+#: seed/deployment_metric_api.py:147 seed/deployment_target_api.py:147
+#, python-format
+msgid "Updating %s (id=%s)"
+msgstr "Atualizando %s (id=%s)"
+
+#: seed/client_api.py:165 seed/deployment_api.py:192
+#: seed/deployment_image_api.py:165 seed/deployment_log_api.py:160
+#: seed/deployment_metric_api.py:165 seed/deployment_target_api.py:165
+#, python-format
+msgid "%s (id=%s) was updated with success!"
+msgstr "%s (id=%s) foi atualizado com sucesso!"
+
+#: seed/client_api.py:181 seed/deployment_api.py:208
+#: seed/deployment_image_api.py:181 seed/deployment_log_api.py:176
+#: seed/deployment_metric_api.py:181 seed/deployment_target_api.py:181
+#, python-format
+msgid "Invalid data for %s (id=%s)"
+msgstr "Dados inválidos para %s (id=%s)"
+
+#: seed/deployment_api.py:33 seed/deployment_api.py:109
+msgid "Deployment"
+msgstr "Implantação"
+
+#: seed/deployment_image_api.py:18 seed/deployment_image_api.py:82
+msgid "DeploymentImage"
+msgstr "Imagem de implantação"
+
+#: seed/deployment_log_api.py:18 seed/deployment_log_api.py:77
+msgid "DeploymentLog"
+msgstr "Registro de implantação"
+
+#: seed/deployment_metric_api.py:18 seed/deployment_metric_api.py:82
+msgid "DeploymentMetric"
+msgstr "Métrica de implantação"
+
+#: seed/deployment_target_api.py:18 seed/deployment_target_api.py:82
+msgid "DeploymentTarget"
+msgstr "Alvo de implantação"
+
+#: seed/jobs.py:45
+msgid "Successfully deployed as a service"
+msgstr "Serviço implantado com sucesso"
+
+#: seed/jobs.py:59
+msgid ""
+"Error in deployment {}: \n"
+" {}"
+msgstr ""
+"Erro na implantação {} \n"
+"{}"
