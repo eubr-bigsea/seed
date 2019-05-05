@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-}
 import logging
+import math
 
 from app_auth import requires_auth
 from flask import request, current_app, g as flask_globals
@@ -26,6 +27,7 @@ def translate_validation(validation_errors):
     return validation_errors
 
 
+
 class DeploymentListApi(Resource):
     """ REST API for listing class Deployment """
 
@@ -34,26 +36,49 @@ class DeploymentListApi(Resource):
 
     @requires_auth
     def get(self):
+        only = None if request.args.get('simple') != 'true' else ('id',)
         if request.args.get('fields'):
-            only = [f.strip() for f in
-                    request.args.get('fields').split(',')]
-        else:
-            only = ('id',) if request.args.get(
-                'simple', 'false') == 'true' else None
-        enabled_filter = request.args.get('enabled')
-        if enabled_filter:
-            deployments = Deployment.query.filter(
-                Deployment.enabled == (enabled_filter != 'false'))
-        else:
-            deployments = Deployment.query.all()
+            only = tuple(
+                [x.strip() for x in request.args.get('fields').split(',')])
 
-        if log.isEnabledFor(logging.DEBUG):
-            log.debug(gettext('Listing %s'), self.human_name)
-        return {
-            'status': 'OK',
-            'data': DeploymentListResponseSchema(
-                many=True, only=only).dump(deployments).data
-        }
+        deployments = Deployment.query
+
+        sort = request.args.get('sort', 'description')
+        if sort not in ['description']:
+            sort = 'id'
+        sort_option = getattr(Deployment, sort)
+        if request.args.get('asc', 'true') == 'false':
+            sort_option = sort_option.desc()
+
+        deployments = deployments.order_by(sort_option)
+        q_filter = request.args.get('q')
+        if q_filter:
+            find_pattern = '%%{}%%'.format(q_filter.replace(" ", "%"))
+            deployments = deployments.filter(or_(
+                Deployment.description.like(find_pattern),
+                Deployment.user_name.like(find_pattern)))
+
+        page = request.args.get('page') or '1'
+
+        if page is not None and page.isdigit():
+            page_size = int(request.args.get('size', 20))
+            page = int(page)
+            pagination = deployments.paginate(page, page_size, True)
+            result = {
+                'data': DeploymentListResponseSchema(many=True, only=only).dump(
+                    pagination.items).data,
+                'pagination': {
+                    'page': page, 'size': page_size,
+                    'total': pagination.total,
+                    'pages': int(math.ceil(1.0 * pagination.total / page_size))}
+            }
+        else:
+            result = {
+                'data': DeploymentListResponseSchema(many=True, only=only).dump(
+                    deployments).data}
+
+        return result
+
 
     @requires_auth
     def post(self):
