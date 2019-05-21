@@ -145,7 +145,7 @@ class DeploymentDetailApi(Resource):
         if deployment is not None:
             result = {
                 'status': 'OK',
-                'data': [DeploymentItemResponseSchema().dump(deployment).data]
+                'data': DeploymentItemResponseSchema().dump(deployment).data
             }
         else:
             return_code = 404

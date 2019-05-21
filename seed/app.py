@@ -20,6 +20,8 @@ from seed.deployment_api import DeploymentDetailApi
 from seed.deployment_api import DeploymentListApi
 from seed.deployment_target_api import DeploymentTargetDetailApi
 from seed.deployment_target_api import DeploymentTargetListApi
+from seed.deployment_image_api import DeploymentImageDetailApi
+from seed.deployment_image_api import DeploymentImageListApi
 
 sqlalchemy_utils.i18n.get_locale = get_locale
 
@@ -42,6 +44,8 @@ api = Api(app)
 mappings = {
     '/deployments': DeploymentListApi,
     '/deployments/<int:deployment_id>': DeploymentDetailApi,
+    '/images/<int:job_id>/<deployment_target_id>': DeploymentImageDetailApi,
+    '/images': DeploymentImageListApi,
     '/targets/<int:job_id>/<deployment_target_id>': DeploymentTargetDetailApi,
     '/targets': DeploymentTargetListApi,
 }

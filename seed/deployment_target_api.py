@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-}
+import math
 from app_auth import requires_auth
 from flask import request, current_app
 from flask_restful import Resource
@@ -19,26 +20,48 @@ class DeploymentTargetListApi(Resource):
 
     @requires_auth
     def get(self):
+        only = None if request.args.get('simple') != 'true' else ('id',)
         if request.args.get('fields'):
-            only = [f.strip() for f in
-                    request.args.get('fields').split(',')]
-        else:
-            only = ('id', ) if request.args.get(
-                'simple', 'false') == 'true' else None
-        enabled_filter = request.args.get('enabled')
-        if enabled_filter:
-            deployment_targets = DeploymentTarget.query.filter(
-                DeploymentTarget.enabled == (enabled_filter != 'false'))
-        else:
-            deployment_targets = DeploymentTarget.query.all()
+            only = tuple(
+                [x.strip() for x in request.args.get('fields').split(',')])
 
-        if log.isEnabledFor(logging.DEBUG):
-            log.debug(gettext('Listing %s'), self.human_name)
-        return {
-            'status': 'OK',
-            'data': DeploymentTargetListResponseSchema(
-                    many=True, only=only).dump(deployment_targets).data
-        }
+        targets = DeploymentTarget.query
+
+        sort = request.args.get('sort', 'name')
+        if sort not in ['name']:
+            sort = 'id'
+        sort_option = getattr(DeploymentTarget, sort)
+        if request.args.get('asc', 'true') == 'false':
+            sort_option = sort_option.desc()
+
+        targets = targets.order_by(sort_option)
+        q_filter = request.args.get('q')
+        if q_filter:
+            find_pattern = '%%{}%%'.format(q_filter.replace(" ", "%"))
+            targets = targets.filter(or_(
+                DeploymentTarget.name.like(find_pattern),
+                DeploymentTarget.user_name.like(find_pattern)))
+
+        page = request.args.get('page') or '1'
+
+        if page is not None and page.isdigit():
+            page_size = int(request.args.get('size', 20))
+            page = int(page)
+            pagination = targets.paginate(page, page_size, True)
+            result = {
+                'data': DeploymentTargetListResponseSchema(many=True, only=only).dump(
+                    pagination.items).data,
+                'pagination': {
+                    'page': page, 'size': page_size,
+                    'total': pagination.total,
+                    'pages': int(math.ceil(1.0 * pagination.total / page_size))}
+            }
+        else:
+            result = {
+                'data': DeploymentTargetListResponseSchema(many=True, only=only).dump(
+                    targets).data}
+        return result
+
 
     @requires_auth
     def post(self):
