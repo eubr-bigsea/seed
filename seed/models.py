@@ -27,7 +27,7 @@ class AuditableType:
 
     @staticmethod
     def values():
-        return [n for n in AuditableType.__dict__.keys()
+        return [n for n in list(AuditableType.__dict__.keys())
                 if n[0] != '_' and n != 'values']
 
 
@@ -42,7 +42,7 @@ class ActionType:
 
     @staticmethod
     def values():
-        return [n for n in ActionType.__dict__.keys()
+        return [n for n in list(ActionType.__dict__.keys())
                 if n[0] != '_' and n != 'values']
 
 
@@ -58,7 +58,7 @@ class ModuleType:
 
     @staticmethod
     def values():
-        return [n for n in ModuleType.__dict__.keys()
+        return [n for n in list(ModuleType.__dict__.keys())
                 if n[0] != '_' and n != 'values']
 
 
@@ -71,7 +71,7 @@ class DeploymentType:
 
     @staticmethod
     def values():
-        return [n for n in DeploymentType.__dict__.keys()
+        return [n for n in list(DeploymentType.__dict__.keys())
                 if n[0] != '_' and n != 'values']
 
 
@@ -88,7 +88,7 @@ class DeploymentStatus:
 
     @staticmethod
     def values():
-        return [n for n in DeploymentStatus.__dict__.keys()
+        return [n for n in list(DeploymentStatus.__dict__.keys())
                 if n[0] != '_' and n != 'values']
 
 
@@ -137,7 +137,7 @@ class Deployment(db.Model):
     user_name = Column(String(100), nullable=False)
     enabled = Column(Boolean,
                      default=False, nullable=False)
-    current_status = Column(Enum(*DeploymentStatus.values(),
+    current_status = Column(Enum(*list(DeploymentStatus.values()),
                                  name='DeploymentStatusEnumType'),
                             default=DeploymentStatus.PENDING, nullable=False)
     attempts = Column(Integer,
@@ -189,7 +189,7 @@ class DeploymentLog(db.Model):
     id = Column(Integer, primary_key=True)
     date = Column(DateTime,
                   default=datetime.datetime.utcnow, nullable=False)
-    status = Column(Enum(*DeploymentStatus.values(),
+    status = Column(Enum(*list(DeploymentStatus.values()),
                          name='DeploymentStatusEnumType'), nullable=False)
     log = Column(String(16000000), nullable=False)
 
@@ -244,7 +244,7 @@ class DeploymentTarget(db.Model):
     url = Column(String(500), nullable=False)
     authentication_info = Column(String(2500))
     enabled = Column(Boolean, nullable=False)
-    target_type = Column(Enum(*DeploymentType.values(),
+    target_type = Column(Enum(*list(DeploymentType.values()),
                               name='DeploymentTypeEnumType'), nullable=False)
     descriptor = Column(String(16000000))
 
@@ -262,10 +262,10 @@ class Traceability(db.Model):
     # Fields
     id = Column(Integer, primary_key=True)
     source_id = Column(Integer, nullable=False)
-    source_type = Column(Enum(*AuditableType.values(),
+    source_type = Column(Enum(*list(AuditableType.values()),
                               name='AuditableTypeEnumType'), nullable=False)
     target_id = Column(Integer, nullable=False)
-    target_type = Column(Enum(*AuditableType.values(),
+    target_type = Column(Enum(*list(AuditableType.values()),
                               name='AuditableTypeEnumType'), nullable=False)
     created = Column(DateTime,
                      default=func.now(), nullable=False)
@@ -273,9 +273,9 @@ class Traceability(db.Model):
     user_login = Column(String(100), nullable=False)
     user_name = Column(String(100), nullable=False)
     context = Column(String(100), nullable=False)
-    module = Column(Enum(*ModuleType.values(),
+    module = Column(Enum(*list(ModuleType.values()),
                          name='ModuleTypeEnumType'), nullable=False)
-    action = Column(Enum(*ActionType.values(),
+    action = Column(Enum(*list(ActionType.values()),
                          name='ActionTypeEnumType'), nullable=False)
     job_id = Column(Integer)
     workflow_id = Column(Integer)

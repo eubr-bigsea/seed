@@ -7,6 +7,13 @@ from flask import request, current_app, g as flask_globals
 from flask_babel import gettext
 from flask_restful import Resource
 from schema import *
+from .app_auth import requires_auth
+from flask import request, current_app
+from flask_restful import Resource
+
+import logging
+from .schema import *
+from flask_babel import gettext
 
 
 log = logging.getLogger(__name__)
@@ -173,7 +180,7 @@ class DeploymentDetailApi(Resource):
                     'message': gettext('%s deleted with success!',
                                        self.human_name)
                 }
-            except Exception, e:
+            except Exception as e:
                 result = {'status': 'ERROR',
                           'message': gettext("Internal error")}
                 return_code = 500

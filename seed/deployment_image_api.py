@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-}
 import math
-from app_auth import requires_auth
+from seed.app_auth import requires_auth
 from flask import request, current_app
 from flask_restful import Resource
 
 import logging
-from schema import *
+from .schema import *
 from flask_babel import gettext
 
 
@@ -143,7 +143,7 @@ class DeploymentImageDetailApi(Resource):
                     'message': gettext('%s deleted with success!',
                                        self.human_name)
                 }
-            except Exception, e:
+            except Exception as e:
                 result = {'status': 'ERROR',
                           'message': gettext("Internal error")}
                 return_code = 500

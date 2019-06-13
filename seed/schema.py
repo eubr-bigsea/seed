@@ -9,7 +9,7 @@ from seed.models import *
 
 def partial_schema_factory(schema_cls):
     schema = schema_cls(partial=True)
-    for field_name, field in schema.fields.items():
+    for field_name, field in list(schema.fields.items()):
         if isinstance(field, fields.Nested):
             new_field = deepcopy(field)
             new_field.schema.partial = True
@@ -92,7 +92,7 @@ class DeploymentCreateRequestSchema(Schema):
     user_name = fields.String(required=True)
     enabled = fields.Boolean(required=True, missing=False)
     current_status = fields.String(required=True, missing=DeploymentStatus.PENDING,
-                                   validate=[OneOf(DeploymentStatus.__dict__.keys())])
+                                   validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
     attempts = fields.Integer(required=True, missing=0)
     entry_point = fields.String(required=False, allow_none=True)
     target_id = fields.Integer(required=True)
@@ -118,7 +118,7 @@ class DeploymentListResponseSchema(Schema):
     job_id = fields.Integer(required=False, allow_none=True)
     enabled = fields.Boolean(required=True, missing=False)
     current_status = fields.String(required=True, missing=DeploymentStatus.PENDING,
-                                   validate=[OneOf(DeploymentStatus.__dict__.keys())])
+                                   validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
     attempts = fields.Integer(required=True, missing=0)
     log = fields.String(required=False, allow_none=True)
     entry_point = fields.String(required=False, allow_none=True)
@@ -158,7 +158,7 @@ class DeploymentItemResponseSchema(Schema):
     command = fields.String(required=False, allow_none=True)
     enabled = fields.Boolean(required=True, missing=False)
     current_status = fields.String(required=True, missing=DeploymentStatus.PENDING,
-                                   validate=[OneOf(DeploymentStatus.__dict__.keys())])
+                                   validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
     attempts = fields.Integer(required=True, missing=0)
     log = fields.String(required=False, allow_none=True)
     entry_point = fields.String(required=False, allow_none=True)
@@ -260,7 +260,7 @@ class DeploymentLogCreateRequestSchema(Schema):
     """ JSON serialization schema """
     date = fields.DateTime(required=True, missing=datetime.datetime.utcnow)
     status = fields.String(required=True,
-                           validate=[OneOf(DeploymentStatus.__dict__.keys())])
+                           validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
     log = fields.String(required=True)
 
     # noinspection PyUnresolvedReferences
@@ -278,7 +278,7 @@ class DeploymentLogListResponseSchema(Schema):
     id = fields.Integer(required=True)
     date = fields.DateTime(required=True, missing=datetime.datetime.utcnow)
     status = fields.String(required=True,
-                           validate=[OneOf(DeploymentStatus.__dict__.keys())])
+                           validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
     log = fields.String(required=True)
 
     # noinspection PyUnresolvedReferences
@@ -296,7 +296,7 @@ class DeploymentLogItemResponseSchema(Schema):
     id = fields.Integer(required=True)
     date = fields.DateTime(required=True, missing=datetime.datetime.utcnow)
     status = fields.String(required=True,
-                           validate=[OneOf(DeploymentStatus.__dict__.keys())])
+                           validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
     log = fields.String(required=True)
 
     # noinspection PyUnresolvedReferences
@@ -373,7 +373,7 @@ class DeploymentTargetCreateRequestSchema(Schema):
     authentication_info = fields.String(required=False, allow_none=True)
     enabled = fields.Boolean(required=True)
     target_type = fields.String(required=True,
-                                validate=[OneOf(DeploymentType.__dict__.keys())])
+                                validate=[OneOf(list(DeploymentType.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
 
     # noinspection PyUnresolvedReferences
@@ -393,7 +393,7 @@ class DeploymentTargetListResponseSchema(Schema):
     description = fields.String(required=False, allow_none=True)
     enabled = fields.Boolean(required=True)
     target_type = fields.String(required=True,
-                                validate=[OneOf(DeploymentType.__dict__.keys())])
+                                validate=[OneOf(list(DeploymentType.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
 
     # noinspection PyUnresolvedReferences
@@ -415,7 +415,7 @@ class DeploymentTargetItemResponseSchema(Schema):
     authentication_info = fields.String(required=False, allow_none=True)
     enabled = fields.Boolean(required=True)
     target_type = fields.String(required=True,
-                                validate=[OneOf(DeploymentType.__dict__.keys())])
+                                validate=[OneOf(list(DeploymentType.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
 
     # noinspection PyUnresolvedReferences
@@ -432,19 +432,19 @@ class TraceabilityCreateRequestSchema(Schema):
     """ JSON serialization schema """
     source_id = fields.Integer(required=True)
     source_type = fields.String(required=True,
-                                validate=[OneOf(AuditableType.__dict__.keys())])
+                                validate=[OneOf(list(AuditableType.__dict__.keys()))])
     target_id = fields.Integer(required=True)
     target_type = fields.String(required=True,
-                                validate=[OneOf(AuditableType.__dict__.keys())])
+                                validate=[OneOf(list(AuditableType.__dict__.keys()))])
     created = fields.DateTime(required=True)
     user_id = fields.Integer(required=True)
     user_login = fields.String(required=True)
     user_name = fields.String(required=True)
     context = fields.String(required=True)
     module = fields.String(required=True,
-                           validate=[OneOf(ModuleType.__dict__.keys())])
+                           validate=[OneOf(list(ModuleType.__dict__.keys()))])
     action = fields.String(required=True,
-                           validate=[OneOf(ActionType.__dict__.keys())])
+                           validate=[OneOf(list(ActionType.__dict__.keys()))])
     job_id = fields.Integer(required=False, allow_none=True)
     workflow_id = fields.Integer(required=False, allow_none=True)
     workflow_name = fields.String(required=False, allow_none=True)
@@ -466,19 +466,19 @@ class TraceabilityListResponseSchema(Schema):
     id = fields.Integer(required=True)
     source_id = fields.Integer(required=True)
     source_type = fields.String(required=True,
-                                validate=[OneOf(AuditableType.__dict__.keys())])
+                                validate=[OneOf(list(AuditableType.__dict__.keys()))])
     target_id = fields.Integer(required=True)
     target_type = fields.String(required=True,
-                                validate=[OneOf(AuditableType.__dict__.keys())])
+                                validate=[OneOf(list(AuditableType.__dict__.keys()))])
     created = fields.DateTime(required=True)
     user_id = fields.Integer(required=True)
     user_login = fields.String(required=True)
     user_name = fields.String(required=True)
     context = fields.String(required=True)
     module = fields.String(required=True,
-                           validate=[OneOf(ModuleType.__dict__.keys())])
+                           validate=[OneOf(list(ModuleType.__dict__.keys()))])
     action = fields.String(required=True,
-                           validate=[OneOf(ActionType.__dict__.keys())])
+                           validate=[OneOf(list(ActionType.__dict__.keys()))])
     job_id = fields.Integer(required=False, allow_none=True)
     workflow_id = fields.Integer(required=False, allow_none=True)
     workflow_name = fields.String(required=False, allow_none=True)
@@ -500,19 +500,19 @@ class TraceabilityItemResponseSchema(Schema):
     id = fields.Integer(required=True)
     source_id = fields.Integer(required=True)
     source_type = fields.String(required=True,
-                                validate=[OneOf(AuditableType.__dict__.keys())])
+                                validate=[OneOf(list(AuditableType.__dict__.keys()))])
     target_id = fields.Integer(required=True)
     target_type = fields.String(required=True,
-                                validate=[OneOf(AuditableType.__dict__.keys())])
+                                validate=[OneOf(list(AuditableType.__dict__.keys()))])
     created = fields.DateTime(required=True)
     user_id = fields.Integer(required=True)
     user_login = fields.String(required=True)
     user_name = fields.String(required=True)
     context = fields.String(required=True)
     module = fields.String(required=True,
-                           validate=[OneOf(ModuleType.__dict__.keys())])
+                           validate=[OneOf(list(ModuleType.__dict__.keys()))])
     action = fields.String(required=True,
-                           validate=[OneOf(ActionType.__dict__.keys())])
+                           validate=[OneOf(list(ActionType.__dict__.keys()))])
     job_id = fields.Integer(required=False, allow_none=True)
     workflow_id = fields.Integer(required=False, allow_none=True)
     workflow_name = fields.String(required=False, allow_none=True)
@@ -534,19 +534,19 @@ class TraceabilityCreateRequestSchema(Schema):
     id = fields.Integer(required=True)
     source_id = fields.Integer(required=True)
     source_type = fields.String(required=True,
-                                validate=[OneOf(AuditableType.__dict__.keys())])
+                                validate=[OneOf(list(AuditableType.__dict__.keys()))])
     target_id = fields.Integer(required=True)
     target_type = fields.String(required=True,
-                                validate=[OneOf(AuditableType.__dict__.keys())])
+                                validate=[OneOf(list(AuditableType.__dict__.keys()))])
     created = fields.DateTime(required=True)
     user_id = fields.Integer(required=True)
     user_login = fields.String(required=True)
     user_name = fields.String(required=True)
     context = fields.String(required=True)
     module = fields.String(required=True,
-                           validate=[OneOf(ModuleType.__dict__.keys())])
+                           validate=[OneOf(list(ModuleType.__dict__.keys()))])
     action = fields.String(required=True,
-                           validate=[OneOf(ActionType.__dict__.keys())])
+                           validate=[OneOf(list(ActionType.__dict__.keys()))])
     job_id = fields.Integer(required=False, allow_none=True)
     workflow_id = fields.Integer(required=False, allow_none=True)
     workflow_name = fields.String(required=False, allow_none=True)
