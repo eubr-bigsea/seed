@@ -427,3 +427,138 @@ class DeploymentTargetItemResponseSchema(Schema):
     class Meta:
         ordered = True
 
+
+class TraceabilityCreateRequestSchema(Schema):
+    """ JSON serialization schema """
+    source_id = fields.Integer(required=True)
+    source_type = fields.String(required=True,
+                                validate=[OneOf(AuditableType.__dict__.keys())])
+    target_id = fields.Integer(required=True)
+    target_type = fields.String(required=True,
+                                validate=[OneOf(AuditableType.__dict__.keys())])
+    created = fields.DateTime(required=True)
+    user_id = fields.Integer(required=True)
+    user_login = fields.String(required=True)
+    user_name = fields.String(required=True)
+    context = fields.String(required=True)
+    module = fields.String(required=True,
+                           validate=[OneOf(ModuleType.__dict__.keys())])
+    action = fields.String(required=True,
+                           validate=[OneOf(ActionType.__dict__.keys())])
+    job_id = fields.Integer(required=False, allow_none=True)
+    workflow_id = fields.Integer(required=False, allow_none=True)
+    workflow_name = fields.String(required=False, allow_none=True)
+    task_id = fields.String(required=False, allow_none=True)
+    risk_score = fields.Float(required=False, allow_none=True)
+
+    # noinspection PyUnresolvedReferences
+    @post_load
+    def make_object(self, data):
+        """ Deserialize data into an instance of Traceability"""
+        return Traceability(**data)
+
+    class Meta:
+        ordered = True
+
+
+class TraceabilityListResponseSchema(Schema):
+    """ JSON serialization schema """
+    id = fields.Integer(required=True)
+    source_id = fields.Integer(required=True)
+    source_type = fields.String(required=True,
+                                validate=[OneOf(AuditableType.__dict__.keys())])
+    target_id = fields.Integer(required=True)
+    target_type = fields.String(required=True,
+                                validate=[OneOf(AuditableType.__dict__.keys())])
+    created = fields.DateTime(required=True)
+    user_id = fields.Integer(required=True)
+    user_login = fields.String(required=True)
+    user_name = fields.String(required=True)
+    context = fields.String(required=True)
+    module = fields.String(required=True,
+                           validate=[OneOf(ModuleType.__dict__.keys())])
+    action = fields.String(required=True,
+                           validate=[OneOf(ActionType.__dict__.keys())])
+    job_id = fields.Integer(required=False, allow_none=True)
+    workflow_id = fields.Integer(required=False, allow_none=True)
+    workflow_name = fields.String(required=False, allow_none=True)
+    task_id = fields.String(required=False, allow_none=True)
+    risk_score = fields.Float(required=False, allow_none=True)
+
+    # noinspection PyUnresolvedReferences
+    @post_load
+    def make_object(self, data):
+        """ Deserialize data into an instance of Traceability"""
+        return Traceability(**data)
+
+    class Meta:
+        ordered = True
+
+
+class TraceabilityItemResponseSchema(Schema):
+    """ JSON serialization schema """
+    id = fields.Integer(required=True)
+    source_id = fields.Integer(required=True)
+    source_type = fields.String(required=True,
+                                validate=[OneOf(AuditableType.__dict__.keys())])
+    target_id = fields.Integer(required=True)
+    target_type = fields.String(required=True,
+                                validate=[OneOf(AuditableType.__dict__.keys())])
+    created = fields.DateTime(required=True)
+    user_id = fields.Integer(required=True)
+    user_login = fields.String(required=True)
+    user_name = fields.String(required=True)
+    context = fields.String(required=True)
+    module = fields.String(required=True,
+                           validate=[OneOf(ModuleType.__dict__.keys())])
+    action = fields.String(required=True,
+                           validate=[OneOf(ActionType.__dict__.keys())])
+    job_id = fields.Integer(required=False, allow_none=True)
+    workflow_id = fields.Integer(required=False, allow_none=True)
+    workflow_name = fields.String(required=False, allow_none=True)
+    task_id = fields.String(required=False, allow_none=True)
+    risk_score = fields.Float(required=False, allow_none=True)
+
+    # noinspection PyUnresolvedReferences
+    @post_load
+    def make_object(self, data):
+        """ Deserialize data into an instance of Traceability"""
+        return Traceability(**data)
+
+    class Meta:
+        ordered = True
+
+
+class TraceabilityCreateRequestSchema(Schema):
+    """ JSON serialization schema """
+    id = fields.Integer(required=True)
+    source_id = fields.Integer(required=True)
+    source_type = fields.String(required=True,
+                                validate=[OneOf(AuditableType.__dict__.keys())])
+    target_id = fields.Integer(required=True)
+    target_type = fields.String(required=True,
+                                validate=[OneOf(AuditableType.__dict__.keys())])
+    created = fields.DateTime(required=True)
+    user_id = fields.Integer(required=True)
+    user_login = fields.String(required=True)
+    user_name = fields.String(required=True)
+    context = fields.String(required=True)
+    module = fields.String(required=True,
+                           validate=[OneOf(ModuleType.__dict__.keys())])
+    action = fields.String(required=True,
+                           validate=[OneOf(ActionType.__dict__.keys())])
+    job_id = fields.Integer(required=False, allow_none=True)
+    workflow_id = fields.Integer(required=False, allow_none=True)
+    workflow_name = fields.String(required=False, allow_none=True)
+    task_id = fields.String(required=False, allow_none=True)
+    risk_score = fields.Float(required=False, allow_none=True)
+
+    # noinspection PyUnresolvedReferences
+    @post_load
+    def make_object(self, data):
+        """ Deserialize data into an instance of Traceability"""
+        return Traceability(**data)
+
+    class Meta:
+        ordered = True
+

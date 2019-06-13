@@ -18,6 +18,51 @@ db = SQLAlchemy()
 
 
 # noinspection PyClassHasNoInit
+class AuditableType:
+    WORKFLOW = 'WORKFLOW'
+    JOB = 'JOB'
+    DATA_SOURCE = 'DATA_SOURCE'
+    MODEL = 'MODEL'
+    DEPLOYMENT = 'DEPLOYMENT'
+
+    @staticmethod
+    def values():
+        return [n for n in AuditableType.__dict__.keys()
+                if n[0] != '_' and n != 'values']
+
+
+# noinspection PyClassHasNoInit
+class ActionType:
+    UNDEPLOY = 'UNDEPLOY'
+    READ_DATA = 'READ_DATA'
+    RUN = 'RUN'
+    DEPLOY = 'DEPLOY'
+    SAVE = 'SAVE'
+    READ_SCHEMA = 'READ_SCHEMA'
+
+    @staticmethod
+    def values():
+        return [n for n in ActionType.__dict__.keys()
+                if n[0] != '_' and n != 'values']
+
+
+# noinspection PyClassHasNoInit
+class ModuleType:
+    PEEL = 'PEEL'
+    JUICER = 'JUICER'
+    LIMONERO = 'LIMONERO'
+    CITRUS = 'CITRUS'
+    SEED = 'SEED'
+    STAND = 'STAND'
+    TAHITI = 'TAHITI'
+
+    @staticmethod
+    def values():
+        return [n for n in ModuleType.__dict__.keys()
+                if n[0] != '_' and n != 'values']
+
+
+# noinspection PyClassHasNoInit
 class DeploymentType:
     DOCKER = 'DOCKER'
     SUPERVISOR = 'SUPERVISOR'
@@ -205,6 +250,41 @@ class DeploymentTarget(db.Model):
 
     def __unicode__(self):
         return self.name
+
+    def __repr__(self):
+        return '<Instance {}: {}>'.format(self.__class__, self.id)
+
+
+class Traceability(db.Model):
+    """ Traceability """
+    __tablename__ = 'traceability'
+
+    # Fields
+    id = Column(Integer, primary_key=True)
+    source_id = Column(Integer, nullable=False)
+    source_type = Column(Enum(*AuditableType.values(),
+                              name='AuditableTypeEnumType'), nullable=False)
+    target_id = Column(Integer, nullable=False)
+    target_type = Column(Enum(*AuditableType.values(),
+                              name='AuditableTypeEnumType'), nullable=False)
+    created = Column(DateTime,
+                     default=func.now(), nullable=False)
+    user_id = Column(Integer, nullable=False)
+    user_login = Column(String(100), nullable=False)
+    user_name = Column(String(100), nullable=False)
+    context = Column(String(100), nullable=False)
+    module = Column(Enum(*ModuleType.values(),
+                         name='ModuleTypeEnumType'), nullable=False)
+    action = Column(Enum(*ActionType.values(),
+                         name='ActionTypeEnumType'), nullable=False)
+    job_id = Column(Integer)
+    workflow_id = Column(Integer)
+    workflow_name = Column(String(250))
+    task_id = Column(String(200))
+    risk_score = Column(Float)
+
+    def __unicode__(self):
+        return self.source_id
 
     def __repr__(self):
         return '<Instance {}: {}>'.format(self.__class__, self.id)

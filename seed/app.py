@@ -1,9 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# noinspection PyBroadException
+try:
+    import eventlet
+
+    eventlet.monkey_patch(all=True, thread=False)
+except:
+    pass
+
 import logging
 import logging.config
 
-import eventlet
 import eventlet.wsgi
 import os
 import sqlalchemy_utils
@@ -14,8 +21,8 @@ from flask_admin.babel import gettext
 from flask_babel import get_locale, Babel
 from flask_cors import CORS
 from flask_restful import Api
-from models import db
 from seed import rq
+from seed.models import db
 from seed.deployment_api import DeploymentDetailApi
 from seed.deployment_api import DeploymentListApi
 from seed.deployment_target_api import DeploymentTargetDetailApi
@@ -49,7 +56,7 @@ mappings = {
     '/targets/<int:job_id>/<deployment_target_id>': DeploymentTargetDetailApi,
     '/targets': DeploymentTargetListApi,
 }
-for path, view in mappings.iteritems():
+for path, view in list(mappings.items()):
     api.add_resource(view, path)
 
 
@@ -78,7 +85,7 @@ def main(is_main_module):
     logger = logging.getLogger(__name__)
     if config_file:
         with open(config_file) as f:
-            config = yaml.load(f)['seed']
+            config = yaml.load(f, Loader=yaml.FullLoader)['seed']
 
         app.config["RESTFUL_JSON"] = {"cls": app.json_encoder}
 
