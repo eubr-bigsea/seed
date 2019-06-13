@@ -29,6 +29,8 @@ from seed.deployment_target_api import DeploymentTargetDetailApi
 from seed.deployment_target_api import DeploymentTargetListApi
 from seed.deployment_image_api import DeploymentImageDetailApi
 from seed.deployment_image_api import DeploymentImageListApi
+from seed.traceability_api import TraceabilityListApi 
+from seed.traceability_api import TraceabilityDetailApi 
 
 sqlalchemy_utils.i18n.get_locale = get_locale
 
@@ -55,6 +57,8 @@ mappings = {
     '/images': DeploymentImageListApi,
     '/targets/<int:job_id>/<deployment_target_id>': DeploymentTargetDetailApi,
     '/targets': DeploymentTargetListApi,
+    '/traceability': TraceabilityListApi,
+    '/traceability/<int:deployment_id>': TraceabilityDetailApi,
 }
 for path, view in list(mappings.items()):
     api.add_resource(view, path)
