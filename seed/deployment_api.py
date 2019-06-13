@@ -1,23 +1,24 @@
 # -*- coding: utf-8 -*-}
-import logging
-import math
-
-from app_auth import requires_auth
+from seed.app_auth import requires_auth
 from flask import request, current_app, g as flask_globals
-from flask_babel import gettext
-from flask_restful import Resource
-from schema import *
-from .app_auth import requires_auth
-from flask import request, current_app
 from flask_restful import Resource
 
+import math
 import logging
-from .schema import *
+from seed.schema import *
 from flask_babel import gettext
-
+from sqlalchemy import or_
 
 log = logging.getLogger(__name__)
 
+
+def translate_validation(validation_errors):
+    for field, errors in validation_errors.items():
+        validation_errors[field] = [gettext(error) for error in errors]
+    return validation_errors
+
+
+# region Protected
 
 def schedule_deployment_job(deployment_id, locale):
     from seed import jobs
@@ -28,11 +29,7 @@ def schedule_deployment_job(deployment_id, locale):
     jobs.deploy.queue(deployment_id, locale)
 
 
-def translate_validation(validation_errors):
-    for field, errors in validation_errors.items():
-        validation_errors[field] = [gettext(error) for error in errors]
-    return validation_errors
-
+# endregion
 
 
 class DeploymentListApi(Resource):
@@ -43,12 +40,17 @@ class DeploymentListApi(Resource):
 
     @requires_auth
     def get(self):
-        only = None if request.args.get('simple') != 'true' else ('id',)
         if request.args.get('fields'):
-            only = tuple(
-                [x.strip() for x in request.args.get('fields').split(',')])
-
-        deployments = Deployment.query
+            only = [f.strip() for f in request.args.get('fields').split(',')]
+        else:
+            only = ('id', ) if request.args.get(
+                'simple', 'false') == 'true' else None
+        enabled_filter = request.args.get('enabled')
+        if enabled_filter:
+            deployments = Deployment.query.filter(
+                Deployment.enabled == (enabled_filter != 'false'))
+        else:
+            deployments = Deployment.query.all()
 
         sort = request.args.get('sort', 'description')
         if sort not in ['description']:
@@ -56,8 +58,8 @@ class DeploymentListApi(Resource):
         sort_option = getattr(Deployment, sort)
         if request.args.get('asc', 'true') == 'false':
             sort_option = sort_option.desc()
-
         deployments = deployments.order_by(sort_option)
+
         q_filter = request.args.get('q')
         if q_filter:
             find_pattern = '%%{}%%'.format(q_filter.replace(" ", "%"))
@@ -66,7 +68,6 @@ class DeploymentListApi(Resource):
                 Deployment.user_name.like(find_pattern)))
 
         page = request.args.get('page') or '1'
-
         if page is not None and page.isdigit():
             page_size = int(request.args.get('size', 20))
             page = int(page)
@@ -84,25 +85,26 @@ class DeploymentListApi(Resource):
                 'data': DeploymentListResponseSchema(many=True, only=only).dump(
                     deployments).data}
 
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug(gettext('Listing %(name)s', name=self.human_name))
         return result
-
 
     @requires_auth
     def post(self):
         result = {'status': 'ERROR',
                   'message': gettext("Missing json in the request body")}
         return_code = 400
+        
         if request.json is not None:
             request_schema = DeploymentCreateRequestSchema()
             response_schema = DeploymentItemResponseSchema()
+            form = request_schema.load(request.json)
 
             request.json['created'] = datetime.datetime.utcnow().isoformat()
             request.json['updated'] = request.json['created']
             request.json['user_id'] = flask_globals.user.id
             request.json['user_login'] = flask_globals.user.login
             request.json['user_name'] = flask_globals.user.name
-
-            form = request_schema.load(request.json)
 
             if form.errors:
                 result = {'status': 'ERROR',
@@ -113,11 +115,7 @@ class DeploymentListApi(Resource):
                     if log.isEnabledFor(logging.DEBUG):
                         log.debug(gettext('Adding %s'), self.human_name)
                     deployment = form.data
-
                     db.session.add(deployment)
-                    db.session.flush()
-                    schedule_deployment_job(deployment.id, 'pt')
-
                     db.session.commit()
                     result = response_schema.dump(deployment).data
                     return_code = 200
@@ -126,7 +124,7 @@ class DeploymentListApi(Resource):
                               'message': gettext("Internal error")}
                     return_code = 500
                     if current_app.debug:
-                        result['debug_detail'] = e.message
+                        result['debug_detail'] = str(e)
 
                     log.exception(e)
                     db.session.rollback()
@@ -136,7 +134,6 @@ class DeploymentListApi(Resource):
 
 class DeploymentDetailApi(Resource):
     """ REST API for a single instance of class Deployment """
-
     def __init__(self):
         self.human_name = gettext('Deployment')
 
@@ -152,14 +149,16 @@ class DeploymentDetailApi(Resource):
         if deployment is not None:
             result = {
                 'status': 'OK',
-                'data': DeploymentItemResponseSchema().dump(deployment).data
+                'data': [DeploymentItemResponseSchema().dump(
+                    deployment).data]
             }
         else:
             return_code = 404
             result = {
                 'status': 'ERROR',
-                'message': gettext('%s not found (id=%s)', self.human_name,
-                                   deployment_id)
+                'message': gettext(
+                    '%(name)s not found (id=%(id)s)',
+                    name=self.human_name, id=deployment_id)
             }
 
         return result, return_code
@@ -177,23 +176,22 @@ class DeploymentDetailApi(Resource):
                 db.session.commit()
                 result = {
                     'status': 'OK',
-                    'message': gettext('%s deleted with success!',
-                                       self.human_name)
+                    'message': gettext('%(name)s deleted with success!',
+                                       name=self.human_name)
                 }
             except Exception as e:
                 result = {'status': 'ERROR',
                           'message': gettext("Internal error")}
                 return_code = 500
                 if current_app.debug:
-                    result['debug_detail'] = e.message
+                    result['debug_detail'] = str(e)
                 db.session.rollback()
         else:
             return_code = 404
             result = {
                 'status': 'ERROR',
-                'message': gettext('%s not found (id=%s).',
-                                   self.human_name,
-                                   deployment_id)
+                'message': gettext('%(name)s not found (id=%(id)s).',
+                                   name=self.human_name, id=deployment_id)
             }
         return result, return_code
 
@@ -222,24 +220,25 @@ class DeploymentDetailApi(Resource):
                         result = {
                             'status': 'OK',
                             'message': gettext(
-                                '%s (id=%s) was updated with success!',
-                                self.human_name,
-                                deployment_id),
-                            'data': [response_schema.dump(deployment).data]
+                                '%(n)s (id=%(id)s) was updated with success!',
+                                n=self.human_name,
+                                id=deployment_id),
+                            'data': [response_schema.dump(
+                                deployment).data]
                         }
                 except Exception as e:
                     result = {'status': 'ERROR',
                               'message': gettext("Internal error")}
                     return_code = 500
                     if current_app.debug:
-                        result['debug_detail'] = e.message
+                        result['debug_detail'] = str(e)
                     db.session.rollback()
             else:
                 result = {
                     'status': 'ERROR',
-                    'message': gettext('Invalid data for %s (id=%s)',
-                                       self.human_name,
-                                       deployment_id),
+                    'message': gettext('Invalid data for %(name)s (id=%(id)s)',
+                                       name=self.human_name,
+                                       id=deployment_id),
                     'errors': form.errors
                 }
         return result, return_code
