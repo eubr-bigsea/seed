@@ -10,30 +10,29 @@ logging.config.fileConfig('logging_config.ini')
 logger = logging.getLogger(__name__)
 
 
-<<<<<<< HEAD
 def ctx_gettext(locale):
     def translate(msg, **variables):
         with app.app.test_request_context():
             with force_locale(locale):
                 return babel_gettext(msg, **variables)
 
+    return translate
 
-return translate
+
 @rq.job("deploy", ttl=60, result_ttl=3600)
 def deploy():
     print((Deployment.query.all()))
 
 
-
 @rq.exception_handler
 def report_jobs_errors(job, *exc_info):
-    print 'ERROR', job, exc_info
+    print('ERROR', job, exc_info)
 
 
 @rq.job
 def deploy2(deployment_id):
     deployment = Deployment.query.get(deployment_id)
-    print '#' * 20, deployment.id, deployment.created
+    print('#' * 20, deployment.id, deployment.created)
     log_message_for_deployment(deployment_id, "Teste", DeploymentStatus.ERROR)
 
 
