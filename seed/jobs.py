@@ -62,7 +62,7 @@ def auditing(data):
                 db.session.add(trace)
         db.session.commit()
     except Exception as ex:
-        print(sys.exc_info())
+        print((sys.exc_info()))
     print("DONE")
 
 
@@ -73,13 +73,13 @@ def deploy():
 
 @rq.exception_handler
 def report_jobs_errors(job, *exc_info):
-    print('ERROR', job, exc_info)
+    print(('ERROR', job, exc_info))
 
 
 @rq.job
 def deploy2(deployment_id):
     deployment = Deployment.query.get(deployment_id)
-    print('#' * 20, deployment.id, deployment.created)
+    print(('#' * 20, deployment.id, deployment.created))
     log_message_for_deployment(deployment_id, "Teste", DeploymentStatus.ERROR)
 
 
