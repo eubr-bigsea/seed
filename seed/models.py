@@ -19,76 +19,79 @@ db = SQLAlchemy()
 
 # noinspection PyClassHasNoInit
 class AuditableType:
-    WORKFLOW = 'WORKFLOW'
-    JOB = 'JOB'
     DATA_SOURCE = 'DATA_SOURCE'
-    MODEL = 'MODEL'
     DEPLOYMENT = 'DEPLOYMENT'
+    JOB = 'JOB'
+    MODEL = 'MODEL'
+    WORKFLOW = 'WORKFLOW'
 
     @staticmethod
     def values():
-        return [n for n in list(AuditableType.__dict__.keys())
+        return [n for n in AuditableType.__dict__.keys()
                 if n[0] != '_' and n != 'values']
 
 
 # noinspection PyClassHasNoInit
 class ActionType:
-    UNDEPLOY = 'UNDEPLOY'
-    READ_DATA = 'READ_DATA'
-    RUN = 'RUN'
+    APPLY_MODEL = 'APPLY_MODEL'
+    CREATE_MODEL = 'CREATE_MODEL'
     DEPLOY = 'DEPLOY'
-    SAVE = 'SAVE'
-    READ_SCHEMA = 'READ_SCHEMA'
+    DISPLAY_DATA = 'DISPLAY_DATA'
+    DISPLAY_SCHEMA = 'DISPLAY_SCHEMA'
+    INFER_SCHEMA = 'INFER_SCHEMA'
+    SAVE_DATA = 'SAVE_DATA'
+    SAVE_VISUALIZATION = 'SAVE_VISUALIZATION'
+    UNDEPLOY = 'UNDEPLOY'
 
     @staticmethod
     def values():
-        return [n for n in list(ActionType.__dict__.keys())
+        return [n for n in ActionType.__dict__.keys()
                 if n[0] != '_' and n != 'values']
 
 
 # noinspection PyClassHasNoInit
 class ModuleType:
-    PEEL = 'PEEL'
     JUICER = 'JUICER'
-    LIMONERO = 'LIMONERO'
-    CITRUS = 'CITRUS'
     SEED = 'SEED'
+    LIMONERO = 'LIMONERO'
     STAND = 'STAND'
+    CITRUS = 'CITRUS'
     TAHITI = 'TAHITI'
+    PEEL = 'PEEL'
 
     @staticmethod
     def values():
-        return [n for n in list(ModuleType.__dict__.keys())
+        return [n for n in ModuleType.__dict__.keys()
                 if n[0] != '_' and n != 'values']
 
 
 # noinspection PyClassHasNoInit
 class DeploymentType:
     DOCKER = 'DOCKER'
-    SUPERVISOR = 'SUPERVISOR'
-    MARATHON = 'MARATHON'
     KUBERNETES = 'KUBERNETES'
+    MARATHON = 'MARATHON'
+    SUPERVISOR = 'SUPERVISOR'
 
     @staticmethod
     def values():
-        return [n for n in list(DeploymentType.__dict__.keys())
+        return [n for n in DeploymentType.__dict__.keys()
                 if n[0] != '_' and n != 'values']
 
 
 # noinspection PyClassHasNoInit
 class DeploymentStatus:
-    RUNNING = 'RUNNING'
-    STOPPED = 'STOPPED'
-    DEPLOYED = 'DEPLOYED'
-    SUSPENDED = 'SUSPENDED'
     ERROR = 'ERROR'
     EDITING = 'EDITING'
     SAVED = 'SAVED'
+    RUNNING = 'RUNNING'
+    STOPPED = 'STOPPED'
+    SUSPENDED = 'SUSPENDED'
     PENDING = 'PENDING'
+    DEPLOYED = 'DEPLOYED'
 
     @staticmethod
     def values():
-        return [n for n in list(DeploymentStatus.__dict__.keys())
+        return [n for n in DeploymentStatus.__dict__.keys()
                 if n[0] != '_' and n != 'values']
 
 
@@ -137,7 +140,7 @@ class Deployment(db.Model):
     user_name = Column(String(100), nullable=False)
     enabled = Column(Boolean,
                      default=False, nullable=False)
-    current_status = Column(Enum(*list(DeploymentStatus.values()),
+    current_status = Column(Enum(*DeploymentStatus.values(),
                                  name='DeploymentStatusEnumType'),
                             default=DeploymentStatus.PENDING, nullable=False)
     attempts = Column(Integer,
@@ -189,7 +192,7 @@ class DeploymentLog(db.Model):
     id = Column(Integer, primary_key=True)
     date = Column(DateTime,
                   default=datetime.datetime.utcnow, nullable=False)
-    status = Column(Enum(*list(DeploymentStatus.values()),
+    status = Column(Enum(*DeploymentStatus.values(),
                          name='DeploymentStatusEnumType'), nullable=False)
     log = Column(String(16000000), nullable=False)
 
@@ -244,7 +247,7 @@ class DeploymentTarget(db.Model):
     url = Column(String(500), nullable=False)
     authentication_info = Column(String(2500))
     enabled = Column(Boolean, nullable=False)
-    target_type = Column(Enum(*list(DeploymentType.values()),
+    target_type = Column(Enum(*DeploymentType.values(),
                               name='DeploymentTypeEnumType'), nullable=False)
     descriptor = Column(String(16000000))
 
@@ -262,10 +265,10 @@ class Traceability(db.Model):
     # Fields
     id = Column(Integer, primary_key=True)
     source_id = Column(Integer, nullable=False)
-    source_type = Column(Enum(*list(AuditableType.values()),
+    source_type = Column(Enum(*AuditableType.values(),
                               name='AuditableTypeEnumType'), nullable=False)
     target_id = Column(Integer, nullable=False)
-    target_type = Column(Enum(*list(AuditableType.values()),
+    target_type = Column(Enum(*AuditableType.values(),
                               name='AuditableTypeEnumType'), nullable=False)
     created = Column(DateTime,
                      default=func.now(), nullable=False)
@@ -273,15 +276,18 @@ class Traceability(db.Model):
     user_login = Column(String(100), nullable=False)
     user_name = Column(String(100), nullable=False)
     context = Column(String(100), nullable=False)
-    module = Column(Enum(*list(ModuleType.values()),
+    module = Column(Enum(*ModuleType.values(),
                          name='ModuleTypeEnumType'), nullable=False)
-    action = Column(Enum(*list(ActionType.values()),
+    action = Column(Enum(*ActionType.values(),
                          name='ActionTypeEnumType'), nullable=False)
     job_id = Column(Integer)
     workflow_id = Column(Integer)
     workflow_name = Column(String(250))
     task_id = Column(String(200))
+    task_name = Column(String(200))
+    task_type = Column(String(200))
     risk_score = Column(Float)
+    platform_id = Column(Integer)
 
     def __unicode__(self):
         return self.source_id

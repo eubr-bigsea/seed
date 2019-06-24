@@ -29,8 +29,8 @@ from seed.deployment_target_api import DeploymentTargetDetailApi
 from seed.deployment_target_api import DeploymentTargetListApi
 from seed.deployment_image_api import DeploymentImageDetailApi
 from seed.deployment_image_api import DeploymentImageListApi
-from seed.traceability_api import TraceabilityListApi 
-from seed.traceability_api import TraceabilityDetailApi 
+from seed.traceability_api import TraceabilityListApi
+from seed.traceability_api import TraceabilityDetailApi
 
 sqlalchemy_utils.i18n.get_locale = get_locale
 
