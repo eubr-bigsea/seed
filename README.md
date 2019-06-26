@@ -23,5 +23,5 @@ $ SEED_CONFIG=../seed.yaml FLASK_APP=seed/app.py flask rq worker
 changing the url accordingly:
 
 ```
-SEED_CONFIG=../seed.yaml FLASK_APP=seed/app.py flask rq worker --url redis://:secrets@example.com:6379/1
+SEED_CONFIG=../seed.yaml FLASK_APP=seed/app.py python -m flask rq worker -v -n auditing --logging_level DEBUG auditing
 ```

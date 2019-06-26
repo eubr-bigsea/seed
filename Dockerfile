@@ -13,7 +13,8 @@ FROM base
 LABEL maintainer="Speed Labs"
 
 ENV SEED_HOME /usr/local/seed
-ENV SEED_CONFIG $SEED_HOME/conf/seed-config.yaml
+ENV SEED_CONFIG $SEED_HOME/conf/seed.yaml
+ENV FLASK_APP $SEED_HOME/seed/app.py
 
 COPY --from=pip_builder /usr/local /usr/local
 
@@ -22,4 +23,5 @@ COPY . $SEED_HOME
 
 RUN pybabel compile -d $SEED_HOME/seed/i18n/locales
 
-CMD ["/usr/local/seed/sbin/seed-daemon.sh", "docker"]
+ENTRYPOINT bin/seed-daemon.sh
+CMD server
