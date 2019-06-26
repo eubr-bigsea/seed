@@ -12,6 +12,8 @@ RUN pip install -r /requirements.txt
 FROM base
 LABEL maintainer="Speed Labs"
 
+RUN apk add --no-cache dumb-init
+
 ENV SEED_HOME /usr/local/seed
 ENV SEED_CONFIG $SEED_HOME/conf/seed.yaml
 ENV FLASK_APP $SEED_HOME/seed/app.py
@@ -23,5 +25,5 @@ COPY . $SEED_HOME
 
 RUN pybabel compile -d $SEED_HOME/seed/i18n/locales
 
-ENTRYPOINT bin/seed-daemon.sh
+ENTRYPOINT ["/usr/bin/dumb-init", "--", "${SEED_HOME}/bin/entrypoint"]
 CMD server
