@@ -15,8 +15,6 @@ LABEL maintainer="Speed Labs"
 RUN apk add --no-cache dumb-init
 
 ENV SEED_HOME /usr/local/seed
-ENV SEED_CONFIG $SEED_HOME/conf/seed.yaml
-ENV FLASK_APP $SEED_HOME/seed/app.py
 
 COPY --from=pip_builder /usr/local /usr/local
 
