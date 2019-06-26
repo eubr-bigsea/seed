@@ -1,11 +1,11 @@
 # coding=utf-8
 import datetime
-import sys
 import json
 import logging.config
 
 from flask_babel import gettext as babel_gettext, force_locale
 from seed import rq
+from seed.app import app
 from seed.models import Deployment, DeploymentLog, DeploymentStatus, \
     Traceability, db, AuditableType
 
@@ -26,44 +26,39 @@ def ctx_gettext(locale):
 
 @rq.job("auditing", result_ttl=3600)
 def auditing(data):
-    print("=======================================")
-    try:
-        logs = json.loads(data)
+    logs = json.loads(data)
 
-        for log in logs:
-            workflow = log.pop('workflow')
-            log['source_id'] = workflow['id']
-            log['source_type'] = AuditableType.WORKFLOW
-            data_sources = log.pop('data_sources')
-            log['created'] = datetime.datetime.strptime(log.pop('date')[:18],
-                                                        "%Y-%m-%dT%H:%M:%S")
-            user = log.pop('user')
-            log['user_id'] = user.get('id')
-            log['user_login'] = user.get('login')
-            log['user_name'] = user.get('name')
-            log['action'] = log.pop('event')
-            if 'job' in log:
-                log['job_id'] = log.get('job', {}).get('id')
-                del log['job']
+    for log in logs:
+        workflow = log.pop('workflow')
+        log['source_id'] = workflow['id']
+        log['source_type'] = AuditableType.WORKFLOW
+        data_sources = log.pop('data_sources')
+        log['created'] = datetime.datetime.strptime(log.pop('date')[:18],
+                                                    "%Y-%m-%dT%H:%M:%S")
+        user = log.pop('user')
+        log['user_id'] = user.get('id')
+        log['user_login'] = user.get('login')
+        log['user_name'] = user.get('name')
+        log['action'] = log.pop('event')
+        if 'job' in log:
+            log['job_id'] = log.get('job', {}).get('id')
+            del log['job']
 
-            log['workflow_id'] = workflow['id']
-            log['workflow_name'] = workflow['name']
+        log['workflow_id'] = workflow['id']
+        log['workflow_name'] = workflow['name']
 
-            task = log.pop('task')
-            log['task_id'] = task['id']
-            log['task_name'] = task['name']
-            log['task_type'] = task['type']
-            log['risk_score'] = 0.0
+        task = log.pop('task')
+        log['task_id'] = task['id']
+        log['task_name'] = task['name']
+        log['task_type'] = task['type']
+        log['risk_score'] = 0.0
 
-            for ds in data_sources:
-                log['target_id'] = ds
-                log['target_type'] = AuditableType.DATA_SOURCE
-                trace = Traceability(**log)
-                db.session.add(trace)
-        db.session.commit()
-    except Exception as ex:
-        print((sys.exc_info()))
-    print("DONE")
+        for ds in data_sources:
+            log['target_id'] = ds
+            log['target_type'] = AuditableType.DATA_SOURCE
+            trace = Traceability(**log)
+            db.session.add(trace)
+    db.session.commit()
 
 
 @rq.job("deploy", ttl=60, result_ttl=3600)

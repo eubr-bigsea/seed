@@ -58,7 +58,7 @@ mappings = {
     '/targets/<int:job_id>/<deployment_target_id>': DeploymentTargetDetailApi,
     '/targets': DeploymentTargetListApi,
     '/traceability': TraceabilityListApi,
-    '/traceability/<int:deployment_id>': TraceabilityDetailApi,
+    '/traceability/<int:traceability_id>': TraceabilityDetailApi,
 }
 for path, view in list(mappings.items()):
     api.add_resource(view, path)

@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-}
-from seed.app_auth import requires_auth
-from flask import request, current_app, g as flask_globals
-from flask_restful import Resource
-from sqlalchemy import or_
-
-import math
 import logging
-from seed.schema import *
+import math
+
+from flask import request, current_app
 from flask_babel import gettext
+from flask_restful import Resource
+from seed.app_auth import requires_auth
+from seed.schema import *
 
 log = logging.getLogger(__name__)
 
@@ -29,9 +28,27 @@ class TraceabilityListApi(Resource):
         if request.args.get('fields'):
             only = [f.strip() for f in request.args.get('fields').split(',')]
         else:
-            only = ('id', ) if request.args.get(
+            only = ('id',) if request.args.get(
                 'simple', 'false') == 'true' else None
-        trace_records = Traceability.query.all()
+
+        target_type = request.args.get('type')
+        target_id = request.args.get('target')
+
+        if target_type not in AuditableType.values():
+            result = {
+                'status': 'ERROR',
+                'msg': gettext('Invalid auditable type: {}').format(target_type)
+            }
+            return result
+        if not target_id or not target_id.isdigit():
+            result = {
+                'status': 'ERROR',
+                'msg': gettext('Target must be a number')
+            }
+            return result
+        trace_records = Traceability.query.filter(
+            Traceability.target_id == target_id,
+            Traceability.target_type == target_type)
 
         page = request.args.get('page') or '1'
         if page is not None and page.isdigit():
@@ -61,7 +78,7 @@ class TraceabilityListApi(Resource):
         result = {'status': 'ERROR',
                   'message': gettext("Missing json in the request body")}
         return_code = 400
-        
+
         if request.json is not None:
             request_schema = TraceabilityCreateRequestSchema()
             response_schema = TraceabilityItemResponseSchema()
@@ -94,6 +111,7 @@ class TraceabilityListApi(Resource):
 
 class TraceabilityDetailApi(Resource):
     """ REST API for a single instance of class Traceability """
+
     def __init__(self):
         self.human_name = gettext('Traceability')
 
