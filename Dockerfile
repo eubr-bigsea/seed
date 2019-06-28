@@ -20,8 +20,9 @@ COPY --from=pip_builder /usr/local /usr/local
 
 WORKDIR $SEED_HOME
 COPY . $SEED_HOME
+COPY bin/entrypoint /usr/local/bin/
 
 RUN pybabel compile -d $SEED_HOME/seed/i18n/locales
 
-ENTRYPOINT ["/usr/bin/dumb-init", "--", "${SEED_HOME}/bin/entrypoint"]
-CMD server
+ENTRYPOINT ["/usr/bin/dumb-init", "--", "/usr/local/bin/entrypoint"]
+CMD ["server"]

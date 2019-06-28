@@ -1,8 +1,8 @@
-#!/usr/bin/env sh -e
+#!/usr/bin/env sh
 
-function server
+function start_server
 {
-  python ${SEED_HOME}/seed/runner/seed_server.py
+  python ${SEED_HOME}/seed/app.py
 }
 
 function db_migrate
@@ -30,12 +30,12 @@ case $CMD in
 
   (server)
     db_migrate
-    seed_server &
+    start_server
     ;;
 
   (worker)
     python -m flask rq worker -v -n auditing \
-      --logging_level DEBUG auditing &
+      --logging_level DEBUG auditing
     ;;
 
   (*)
