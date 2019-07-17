@@ -7,6 +7,7 @@ Create Date: 2019-04-04 09:03:02.063585
 """
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects.mysql import LONGTEXT
 
 # revision identifiers, used by Alembic.
 revision = 'be218984140b'
@@ -25,7 +26,7 @@ def upgrade():
                                       'EDITING', 'PENDING', 'ERROR', 'DEPLOYED',
                                       name='DeploymentStatusEnumType'),
                               nullable=False),
-                    sa.Column('log', sa.String(length=16000000),
+                    sa.Column('log', LONGTEXT,
                               nullable=False),
                     sa.Column('deployment_id', sa.Integer(), nullable=False),
                     sa.ForeignKeyConstraint(['deployment_id'],

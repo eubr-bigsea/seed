@@ -12,7 +12,7 @@ RUN pip install -r /requirements.txt
 FROM base
 LABEL maintainer="Speed Labs"
 
-RUN apk add --no-cache dumb-init
+RUN apk add --no-cache dumb-init libffi-dev
 
 ENV SEED_HOME /usr/local/seed
 
