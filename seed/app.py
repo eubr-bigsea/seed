@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # noinspection PyBroadException
+
 try:
     import eventlet
 
@@ -10,34 +11,34 @@ except:
 
 import logging
 import logging.config
+import os
 
 import eventlet.wsgi
-import os
 import sqlalchemy_utils
 import yaml
-from flask import Flask, request
+from flask import Flask
+from flask import request
 from flask_admin import Admin
 from flask_admin.babel import gettext
 from flask_babel import get_locale, Babel
 from flask_cors import CORS
 from flask_restful import Api
 from seed import rq
-from seed.models import db
 from seed.deployment_api import DeploymentDetailApi
 from seed.deployment_api import DeploymentListApi
-from seed.deployment_target_api import DeploymentTargetDetailApi
-from seed.deployment_target_api import DeploymentTargetListApi
 from seed.deployment_image_api import DeploymentImageDetailApi
 from seed.deployment_image_api import DeploymentImageListApi
-from seed.traceability_api import TraceabilityListApi
+from seed.deployment_target_api import DeploymentTargetDetailApi
+from seed.deployment_target_api import DeploymentTargetListApi
+from seed.models import db
 from seed.traceability_api import TraceabilityDetailApi
+from seed.traceability_api import TraceabilityListApi
 
 sqlalchemy_utils.i18n.get_locale = get_locale
 
 eventlet.monkey_patch(all=True)
 app = Flask(__name__)
 
-rq.init_app(app)
 babel = Babel(app)
 
 logging.config.fileConfig('logging_config.ini')
@@ -70,6 +71,12 @@ def get_locale():
            request.accept_languages.best_match(['pt', 'en']) or 'pt'
 
 
+# @requires_auth
+# def check_auth():
+#     if flask_globals.user.id != 1:
+#         abort(401)
+
+
 def marshmallow_errors():
     """
     Static list of validation errors keys used in marshmallow, required in order
@@ -78,6 +85,7 @@ def marshmallow_errors():
     gettext('Missing data for required field.')
     gettext('Not a valid integer.')
     gettext('Not a valid datetime.')
+
 
 #
 
@@ -101,6 +109,7 @@ def main(is_main_module):
         app.config['SQLALCHEMY_POOL_RECYCLE'] = 240
 
         app.config['RQ_REDIS_URL'] = config['servers']['redis_url']
+        print(app.config['RQ_REDIS_URL'])
 
         app.config['BABEL_TRANSLATION_DIRECTORIES'] = 'i18n/locales'
         app.config['BABEL_DEFAULT_LOCALE'] = 'UTC'
@@ -109,6 +118,12 @@ def main(is_main_module):
         app.config['SEED_CONFIG'] = config
 
         db.init_app(app)
+        rq.init_app(app)
+
+        # RQ Dashboard
+        # app.config.from_object(rq_dashboard.default_settings)
+        # app.config.from_object(app.config)
+        # app.register_blueprint(rq_dashboard.blueprint, url_prefix='/dashboard')
 
         port = int(config.get('port', 5000))
         logger.debug('Running in %s mode', config.get('environment'))
