@@ -1,5 +1,6 @@
 alembic==1.0.10
 aniso8601==7.0.0
+arrow==0.14.2
 asn1crypto==0.24.0
 Babel==2.7.0
 cachetools==3.1.1
@@ -35,7 +36,6 @@ MarkupSafe==1.1.1
 marshmallow==2.19.2
 monotonic==1.5
 oauthlib==3.0.1
-pkg-resources==0.0.0
 pyaml==19.4.1
 pyasn1==0.4.5
 pyasn1-modules==0.2.5
@@ -50,6 +50,7 @@ requests==2.22.0
 requests-oauthlib==1.2.0
 requests-toolbelt==0.9.1
 rq==1.0
+rq-dashboard==0.5.1
 rq-scheduler==0.9
 rsa==4.0
 six==1.12.0
