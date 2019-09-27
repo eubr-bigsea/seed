@@ -31,7 +31,7 @@ class TraceabilityListApi(Resource):
             only = ('id',) if request.args.get(
                 'simple', 'false') == 'true' else None
 
-        target_type = request.args.get('type')
+        target_type = request.args.get('target_type')
         target_id = request.args.get('target')
 
         if target_type not in AuditableType.values():
