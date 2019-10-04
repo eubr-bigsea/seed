@@ -2,18 +2,35 @@
 import datetime
 import json
 import logging.config
-
+import os
+import yaml
+from tmalibrary.probes import *
 from flask_babel import gettext as babel_gettext, force_locale
 from seed import rq
 from seed.app import app
 from seed.models import Deployment, DeploymentLog, DeploymentStatus, \
     Traceability, db, AuditableType
-
+import requests
 logging.config.fileConfig('logging_config.ini')
 logger = logging.getLogger(__name__)
 
 JOB_MODULE = True
+def send_message(self, message_formated):
+    # url = 'http://0.0.0.0:5000/monitor'
+    self.message_formated = message_formated
+    headers = {'content-type': 'application/json'}
+    # return the response from Post request
+    return requests.post(self.url, data=self.message_formated, headers=headers, verify=False)
 
+def get_config():
+    config_file = os.environ.get('SEED_CONFIG')
+    if config_file is None:
+        raise ValueError(
+            'You must inform the SEED_CONF env variable')
+
+    with open(config_file) as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+    return config['seed']
 
 def ctx_gettext(locale):
     def translate(msg, **variables):
@@ -23,8 +40,30 @@ def ctx_gettext(locale):
 
     return translate
 
+@rq.job("seed", result_ttl=3600)
+def metric_probe_updater(data):
+    """ A generic client for TMA """
+    config = get_config()
 
-@rq.job("auditing", result_ttl=3600)
+    msg = Message(probeId=data.get('probe_id'),
+    resourceId=data.get('resource'),
+        messageId=data.get('message_id'),
+        sentTime=data.get('sent_time'),
+        data=None)
+    dt = Data(type="measurement",
+              descriptionId=data.get('description_id'),
+              observations=[Observation(time=data.get('observation_time'),
+                                        value=data.get('observation_value'))])
+    msg.add_data(data=dt)
+    json_msg = json.dumps(msg.reprJSON(), cls=ComplexEncoder)
+    logging.debug('%s' % json_msg)
+
+    Communication.send_message= send_message
+    communication = Communication(config['services']['tma']['url'])
+
+    communication.send_message(json_msg)
+
+@rq.job("seed", result_ttl=3600)
 def auditing(data):
     logs = json.loads(data)
 
@@ -61,8 +100,10 @@ def auditing(data):
     db.session.commit()
 
 
-@rq.job("deploy", ttl=60, result_ttl=3600)
-def deploy():
+@rq.job("seed", ttl=60, result_ttl=3600)
+def deploy3():
+    import pdb
+    pdb.set_trace()
     print((Deployment.query.all()))
 
 
