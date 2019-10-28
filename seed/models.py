@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Float, \
     Enum, DateTime, Numeric, Text, Unicode, UnicodeText
 from sqlalchemy import event
+from sqlalchemy.dialects.mysql import LONGTEXT
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.schema import UniqueConstraint
@@ -145,7 +146,7 @@ class Deployment(db.Model):
                             default=DeploymentStatus.PENDING, nullable=False)
     attempts = Column(Integer,
                       default=0, nullable=False)
-    log = Column(String(16000000))
+    log = Column(LONGTEXT)
     entry_point = Column(String(800))
 
     # Associations
@@ -194,7 +195,7 @@ class DeploymentLog(db.Model):
                   default=datetime.datetime.utcnow, nullable=False)
     status = Column(Enum(*list(DeploymentStatus.values()),
                          name='DeploymentStatusEnumType'), nullable=False)
-    log = Column(String(16000000), nullable=False)
+    log = Column(LONGTEXT, nullable=False)
 
     # Associations
     deployment_id = Column(Integer,
@@ -249,10 +250,32 @@ class DeploymentTarget(db.Model):
     enabled = Column(Boolean, nullable=False)
     target_type = Column(Enum(*list(DeploymentType.values()),
                               name='DeploymentTypeEnumType'), nullable=False)
-    descriptor = Column(String(16000000))
+    descriptor = Column(LONGTEXT)
 
     def __unicode__(self):
         return self.name
+
+    def __repr__(self):
+        return '<Instance {}: {}>'.format(self.__class__, self.id)
+
+
+class MetricValue(db.Model):
+    """ Metric values """
+    __tablename__ = 'metric_value'
+
+    # Fields
+    id = Column(Integer, primary_key=True)
+    sent_time = Column(DateTime)
+    time = Column(DateTime, nullable=False)
+    probe_id = Column(Integer, nullable=False)
+    resource_id = Column(Integer, nullable=False)
+    data = Column(LONGTEXT, nullable=False)
+    tma_data = Column(LONGTEXT)
+    item = Column(String(200))
+    sent = Column(String(200), nullable=False)
+
+    def __unicode__(self):
+        return self.sent_time
 
     def __repr__(self):
         return '<Instance {}: {}>'.format(self.__class__, self.id)
