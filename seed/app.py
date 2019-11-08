@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # noinspection PyBroadException
+from seed.actuator_api import TMAActuatorApi
 
 try:
     import eventlet
@@ -60,6 +61,7 @@ mappings = {
     '/targets': DeploymentTargetListApi,
     '/traceability': TraceabilityListApi,
     '/traceability/<int:traceability_id>': TraceabilityDetailApi,
+    '/actuators': TMAActuatorApi
 }
 for path, view in list(mappings.items()):
     api.add_resource(view, path)

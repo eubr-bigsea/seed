@@ -92,7 +92,7 @@ def metric_probe_updater(metric_data):
 
             msg = Message(probeId=tma_conf.get('probe_id'),
                           resourceId=wf_mapping.get(int(wf_id)),
-                          messageId=None,
+                          messageId=None,  # incremental
                           sentTime=round(datetime.datetime.timestamp(now)),
                           data=None)
             observed = datetime.datetime.strptime(metric_data['time'][:19],
@@ -231,3 +231,23 @@ def log_message_for_deployment(deployment_id, log_message, status):
         status=status, deployment_id=deployment_id, log=log_message)
     DeploymentLog.query.session.add(log)
     DeploymentLog.query.session.commit()
+
+
+@rq.job
+def tma_retrain(tma_payload):
+    logger.info("TMA retrain")
+
+
+@rq.job
+def tma_disable_service(tma_payload):
+    logger.info("TMA disable service")
+
+
+@rq.job
+def tma_send_email(tma_payload):
+    logger.info("TMA Send Email")
+
+
+@rq.job
+def tma_deny_deploy(tma_payload):
+    logger.info("TMA Deny deploy")
