@@ -28,7 +28,7 @@ greenlet==0.4.15
 idna==2.8
 ipaddress==1.0.22
 itsdangerous==1.1.0
-Jinja2==2.10.1
+Jinja2==2.11.3
 kubernetes==9.0.0
 Mako==1.0.12
 marathon==0.11.0
