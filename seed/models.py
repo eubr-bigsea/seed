@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import datetime
 import json
 from flask_sqlalchemy import SQLAlchemy
@@ -16,54 +15,6 @@ make_translatable(options={'locales': ['pt', 'en'],
                            'fallback_locale': 'en'})
 
 db = SQLAlchemy()
-
-
-# noinspection PyClassHasNoInit
-class AuditableType:
-    DATA_SOURCE = 'DATA_SOURCE'
-    DEPLOYMENT = 'DEPLOYMENT'
-    JOB = 'JOB'
-    MODEL = 'MODEL'
-    WORKFLOW = 'WORKFLOW'
-
-    @staticmethod
-    def values():
-        return [n for n in list(AuditableType.__dict__.keys())
-                if n[0] != '_' and n != 'values']
-
-
-# noinspection PyClassHasNoInit
-class ActionType:
-    APPLY_MODEL = 'APPLY_MODEL'
-    CREATE_MODEL = 'CREATE_MODEL'
-    DEPLOY = 'DEPLOY'
-    DISPLAY_DATA = 'DISPLAY_DATA'
-    DISPLAY_SCHEMA = 'DISPLAY_SCHEMA'
-    INFER_SCHEMA = 'INFER_SCHEMA'
-    SAVE_DATA = 'SAVE_DATA'
-    SAVE_VISUALIZATION = 'SAVE_VISUALIZATION'
-    UNDEPLOY = 'UNDEPLOY'
-
-    @staticmethod
-    def values():
-        return [n for n in list(ActionType.__dict__.keys())
-                if n[0] != '_' and n != 'values']
-
-
-# noinspection PyClassHasNoInit
-class ModuleType:
-    JUICER = 'JUICER'
-    SEED = 'SEED'
-    LIMONERO = 'LIMONERO'
-    STAND = 'STAND'
-    CITRUS = 'CITRUS'
-    TAHITI = 'TAHITI'
-    PEEL = 'PEEL'
-
-    @staticmethod
-    def values():
-        return [n for n in list(ModuleType.__dict__.keys())
-                if n[0] != '_' and n != 'values']
 
 
 # noinspection PyClassHasNoInit
@@ -96,6 +47,20 @@ class DeploymentStatus:
                 if n[0] != '_' and n != 'values']
 
 
+# noinspection PyClassHasNoInit
+class DeploymentType:
+    MODEL = 'MODEL'
+    DASHBOARD = 'DASHBOARD'
+    APP = 'APP'
+
+    @staticmethod
+    def values():
+        return [n for n in list(DeploymentType.__dict__.keys())
+                if n[0] != '_' and n != 'values']
+
+# Association tables definition
+
+
 class Client(db.Model):
     """ Service client configuration """
     __tablename__ = 'client'
@@ -108,12 +73,16 @@ class Client(db.Model):
 
     # Associations
     deployment_id = Column(Integer,
-                           ForeignKey("deployment.id"), nullable=False)
+                           ForeignKey("deployment.id",
+                                      name="fk_client_deployment_id"),
+                           nullable=False,
+                           index=True)
     deployment = relationship(
         "Deployment",
+        overlaps='clients',
         foreign_keys=[deployment_id])
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def __repr__(self):
@@ -134,8 +103,9 @@ class Deployment(db.Model):
                      onupdate=datetime.datetime.utcnow)
     command = Column(String(5000))
     workflow_name = Column(String(200), nullable=False)
-    workflow_id = Column(Integer, nullable=False)
+    workflow_id = Column(Integer)
     job_id = Column(Integer)
+    model_id = Column(Integer)
     user_id = Column(Integer, nullable=False)
     user_login = Column(String(100), nullable=False)
     user_name = Column(String(100), nullable=False)
@@ -144,24 +114,44 @@ class Deployment(db.Model):
     current_status = Column(Enum(*list(DeploymentStatus.values()),
                                  name='DeploymentStatusEnumType'),
                             default=DeploymentStatus.PENDING, nullable=False)
+    type = Column(Enum(*list(DeploymentType.values()),
+                       name='DeploymentTypeEnumType'),
+                  default=DeploymentType.MODEL, nullable=False)
     attempts = Column(Integer,
                       default=0, nullable=False)
     log = Column(LONGTEXT)
     entry_point = Column(String(800))
+    replicas = Column(Integer,
+                      default=1, nullable=False)
+    request_memory = Column(String(200),
+                            default=128M, nullable=False)
+    limit_memory = Column(String(200))
+    request_cpu = Column(Numeric(10, 2),
+                         default=0.5, nullable=False)
+    limit_cpu = Column(Numeric(10, 2))
+    extra_parameters = Column(LONGTEXT)
 
     # Associations
     target_id = Column(Integer,
-                       ForeignKey("deployment_target.id"), nullable=False)
+                       ForeignKey("deployment_target.id",
+                                  name="fk_deployment_target_id"),
+                       nullable=False,
+                       index=True)
     target = relationship(
         "DeploymentTarget",
+        overlaps='deployments',
         foreign_keys=[target_id])
     image_id = Column(Integer,
-                      ForeignKey("deployment_image.id"), nullable=False)
+                      ForeignKey("deployment_image.id",
+                                 name="fk_deployment_image_id"),
+                      nullable=False,
+                      index=True)
     image = relationship(
         "DeploymentImage",
+        overlaps='deployments',
         foreign_keys=[image_id])
 
-    def __unicode__(self):
+    def __str__(self):
         return self.description
 
     def __repr__(self):
@@ -178,7 +168,7 @@ class DeploymentImage(db.Model):
     tag = Column(String(100), nullable=False)
     enabled = Column(Boolean, nullable=False)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def __repr__(self):
@@ -199,12 +189,16 @@ class DeploymentLog(db.Model):
 
     # Associations
     deployment_id = Column(Integer,
-                           ForeignKey("deployment.id"), nullable=False)
+                           ForeignKey("deployment.id",
+                                      name="fk_deployment_log_deployment_id"),
+                           nullable=False,
+                           index=True)
     deployment = relationship(
         "Deployment",
+        overlaps='logs',
         foreign_keys=[deployment_id])
 
-    def __unicode__(self):
+    def __str__(self):
         return self.date
 
     def __repr__(self):
@@ -225,12 +219,16 @@ class DeploymentMetric(db.Model):
 
     # Associations
     deployment_id = Column(Integer,
-                           ForeignKey("deployment.id"), nullable=False)
+                           ForeignKey("deployment.id",
+                                      name="fk_deployment_metric_deployment_id"),
+                           nullable=False,
+                           index=True)
     deployment = relationship(
         "Deployment",
+        overlaps='metrics',
         foreign_keys=[deployment_id])
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def __repr__(self):
@@ -252,7 +250,7 @@ class DeploymentTarget(db.Model):
                               name='DeploymentTypeEnumType'), nullable=False)
     descriptor = Column(LONGTEXT)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def __repr__(self):
@@ -270,50 +268,22 @@ class MetricValue(db.Model):
     probe_id = Column(Integer, nullable=False)
     resource_id = Column(Integer, nullable=False)
     data = Column(LONGTEXT, nullable=False)
-    tma_data = Column(LONGTEXT)
     item = Column(String(200))
     sent = Column(String(200), nullable=False)
 
-    def __unicode__(self):
+    # Associations
+    deployment_id = Column(Integer,
+                           ForeignKey("deployment.id",
+                                      name="fk_metric_value_deployment_id"),
+                           nullable=False,
+                           index=True)
+    deployment = relationship(
+        "Deployment",
+        overlaps='metrics',
+        foreign_keys=[deployment_id])
+
+    def __str__(self):
         return self.sent_time
-
-    def __repr__(self):
-        return '<Instance {}: {}>'.format(self.__class__, self.id)
-
-
-class Traceability(db.Model):
-    """ Traceability """
-    __tablename__ = 'traceability'
-
-    # Fields
-    id = Column(Integer, primary_key=True)
-    source_id = Column(Integer, nullable=False)
-    source_type = Column(Enum(*list(AuditableType.values()),
-                              name='AuditableTypeEnumType'), nullable=False)
-    target_id = Column(Integer, nullable=False)
-    target_type = Column(Enum(*list(AuditableType.values()),
-                              name='AuditableTypeEnumType'), nullable=False)
-    created = Column(DateTime,
-                     default=func.now(), nullable=False)
-    user_id = Column(Integer, nullable=False)
-    user_login = Column(String(100), nullable=False)
-    user_name = Column(String(100), nullable=False)
-    context = Column(String(100), nullable=False)
-    module = Column(Enum(*list(ModuleType.values()),
-                         name='ModuleTypeEnumType'), nullable=False)
-    action = Column(Enum(*list(ActionType.values()),
-                         name='ActionTypeEnumType'), nullable=False)
-    job_id = Column(Integer)
-    workflow_id = Column(Integer)
-    workflow_name = Column(String(250))
-    task_id = Column(String(200))
-    task_name = Column(String(200))
-    task_type = Column(String(200))
-    risk_score = Column(Float)
-    platform_id = Column(Integer)
-
-    def __unicode__(self):
-        return self.source_id
 
     def __repr__(self):
         return '<Instance {}: {}>'.format(self.__class__, self.id)
