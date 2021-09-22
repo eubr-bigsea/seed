@@ -130,6 +130,8 @@ class Deployment(db.Model):
                          default=0.5, nullable=False)
     limit_cpu = Column(Numeric(10, 2))
     extra_parameters = Column(LONGTEXT)
+    input_spec = Column(LONGTEXT)
+    output_spec = Column(LONGTEXT)
 
     # Associations
     target_id = Column(Integer,

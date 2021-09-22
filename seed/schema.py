@@ -141,6 +141,8 @@ class DeploymentCreateRequestSchema(BaseSchema):
         default=0.5)
     limit_cpu = fields.Decimal(required=False, allow_none=True)
     extra_parameters = fields.String(required=False, allow_none=True)
+    input_spec = fields.String(required=False, allow_none=True)
+    output_spec = fields.String(required=False, allow_none=True)
     target_id = fields.Integer(required=True)
     image_id = fields.Integer(required=True)
 
@@ -194,6 +196,8 @@ class DeploymentListResponseSchema(BaseSchema):
         default=0.5)
     limit_cpu = fields.Decimal(required=False, allow_none=True)
     extra_parameters = fields.String(required=False, allow_none=True)
+    input_spec = fields.String(required=False, allow_none=True)
+    output_spec = fields.String(required=False, allow_none=True)
     target = fields.Nested(
         'seed.schema.DeploymentTargetListResponseSchema',
         required=True)
@@ -260,6 +264,8 @@ class DeploymentItemResponseSchema(BaseSchema):
         default=0.5)
     limit_cpu = fields.Decimal(required=False, allow_none=True)
     extra_parameters = fields.String(required=False, allow_none=True)
+    input_spec = fields.String(required=False, allow_none=True)
+    output_spec = fields.String(required=False, allow_none=True)
     target = fields.Nested(
         'seed.schema.DeploymentTargetItemResponseSchema',
         required=True)
