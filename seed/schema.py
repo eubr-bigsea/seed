@@ -132,7 +132,11 @@ class DeploymentCreateRequestSchema(BaseSchema):
         allow_none=True,
         missing=1,
         default=1)
-    request_memory = fields.String(required=False, allow_none=True, missing=128M, default=128M)
+    request_memory = fields.String(
+        required=False,
+        allow_none=True,
+        missing='128M',
+        default='128M')
     limit_memory = fields.String(required=False, allow_none=True)
     request_cpu = fields.Decimal(
         required=False,
@@ -187,7 +191,11 @@ class DeploymentListResponseSchema(BaseSchema):
         allow_none=True,
         missing=1,
         default=1)
-    request_memory = fields.String(required=False, allow_none=True, missing=128M, default=128M)
+    request_memory = fields.String(
+        required=False,
+        allow_none=True,
+        missing='128M',
+        default='128M')
     limit_memory = fields.String(required=False, allow_none=True)
     request_cpu = fields.Decimal(
         required=False,
@@ -255,7 +263,11 @@ class DeploymentItemResponseSchema(BaseSchema):
         allow_none=True,
         missing=1,
         default=1)
-    request_memory = fields.String(required=False, allow_none=True, missing=128M, default=128M)
+    request_memory = fields.String(
+        required=False,
+        allow_none=True,
+        missing='128M',
+        default='128M')
     limit_memory = fields.String(required=False, allow_none=True)
     request_cpu = fields.Decimal(
         required=False,

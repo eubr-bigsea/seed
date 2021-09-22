@@ -124,7 +124,7 @@ class Deployment(db.Model):
     replicas = Column(Integer,
                       default=1, nullable=False)
     request_memory = Column(String(200),
-                            default=128M, nullable=False)
+                            default='128M', nullable=False)
     limit_memory = Column(String(200))
     request_cpu = Column(Numeric(10, 2),
                          default=0.5, nullable=False)
