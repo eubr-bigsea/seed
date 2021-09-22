@@ -14,13 +14,14 @@ from seed.util import translate_validation
 from flask_babel import gettext
 
 log = logging.getLogger(__name__)
+# region Protected\s*
+# endregion
 
-
-class DeploymentTargetListApi(Resource):
-    """ REST API for listing class DeploymentTarget """
+class MetricValueListApi(Resource):
+    """ REST API for listing class MetricValue """
 
     def __init__(self):
-        self.human_name = gettext('DeploymentTarget')
+        self.human_name = gettext('MetricValue')
 
     @requires_auth
     def get(self):
@@ -29,20 +30,15 @@ class DeploymentTargetListApi(Resource):
         else:
             only = ('id', ) if request.args.get(
                 'simple', 'false') == 'true' else None
-        enabled_filter = request.args.get('enabled')
-        if enabled_filter:
-            deployment_targets = DeploymentTarget.query.filter(
-                DeploymentTarget.enabled == (enabled_filter != 'false'))
-        else:
-            deployment_targets = DeploymentTarget.query
+        metric_values = MetricValue.query.all()
 
         page = request.args.get('page') or '1'
         if page is not None and page.isdigit():
             page_size = int(request.args.get('size', 20))
             page = int(page)
-            pagination = deployment_targets.paginate(page, page_size, True)
+            pagination = metric_values.paginate(page, page_size, True)
             result = {
-                'data': DeploymentTargetListResponseSchema(
+                'data': MetricValueListResponseSchema(
                     many=True, only=only).dump(pagination.items),
                 'pagination': {
                     'page': page, 'size': page_size,
@@ -51,9 +47,9 @@ class DeploymentTargetListApi(Resource):
             }
         else:
             result = {
-                'data': DeploymentTargetListResponseSchema(
+                'data': MetricValueListResponseSchema(
                     many=True, only=only).dump(
-                    deployment_targets)}
+                    metric_values)}
 
         if log.isEnabledFor(logging.DEBUG):
             log.debug(gettext('Listing %(name)s', name=self.human_name))
@@ -66,16 +62,16 @@ class DeploymentTargetListApi(Resource):
         return_code = HTTPStatus.BAD_REQUEST
         
         if request.json is not None:
-            request_schema = DeploymentTargetCreateRequestSchema()
-            response_schema = DeploymentTargetItemResponseSchema()
-            deployment_target = request_schema.load(request.json)
+            request_schema = MetricValueCreateRequestSchema()
+            response_schema = MetricValueItemResponseSchema()
+            metric_value = request_schema.load(request.json)
             try:
                 if log.isEnabledFor(logging.DEBUG):
                     log.debug(gettext('Adding %s'), self.human_name)
-                deployment_target = deployment_target
-                db.session.add(deployment_target)
+                metric_value = metric_value
+                db.session.add(metric_value)
                 db.session.commit()
-                result = response_schema.dump(deployment_target)
+                result = response_schema.dump(metric_value)
                 return_code = HTTPStatus.CREATED
             except ValidationError as e:
                 result= {
@@ -97,25 +93,25 @@ class DeploymentTargetListApi(Resource):
         return result, return_code
 
 
-class DeploymentTargetDetailApi(Resource):
-    """ REST API for a single instance of class DeploymentTarget """
+class MetricValueDetailApi(Resource):
+    """ REST API for a single instance of class MetricValue """
     def __init__(self):
-        self.human_name = gettext('DeploymentTarget')
+        self.human_name = gettext('MetricValue')
 
     @requires_auth
-    def get(self, deployment_target_id):
+    def get(self, metric_value_id):
 
         if log.isEnabledFor(logging.DEBUG):
             log.debug(gettext('Retrieving %s (id=%s)'), self.human_name,
-                      deployment_target_id)
+                      metric_value_id)
 
-        deployment_target = DeploymentTarget.query.get(deployment_target_id)
+        metric_value = MetricValue.query.get(metric_value_id)
         return_code = HTTPStatus.OK
-        if deployment_target is not None:
+        if metric_value is not None:
             result = {
                 'status': 'OK',
-                'data': [DeploymentTargetItemResponseSchema().dump(
-                    deployment_target)]
+                'data': [MetricValueItemResponseSchema().dump(
+                    metric_value)]
             }
         else:
             return_code = HTTPStatus.NOT_FOUND
@@ -123,21 +119,21 @@ class DeploymentTargetDetailApi(Resource):
                 'status': 'ERROR',
                 'message': gettext(
                     '%(name)s not found (id=%(id)s)',
-                    name=self.human_name, id=deployment_target_id)
+                    name=self.human_name, id=metric_value_id)
             }
 
         return result, return_code
 
     @requires_auth
-    def delete(self, deployment_target_id):
+    def delete(self, metric_value_id):
         return_code = HTTPStatus.NO_CONTENT
         if log.isEnabledFor(logging.DEBUG):
             log.debug(gettext('Deleting %s (id=%s)'), self.human_name,
-                      deployment_target_id)
-        deployment_target = DeploymentTarget.query.get(deployment_target_id)
-        if deployment_target is not None:
+                      metric_value_id)
+        metric_value = MetricValue.query.get(metric_value_id)
+        if metric_value is not None:
             try:
-                db.session.delete(deployment_target)
+                db.session.delete(metric_value)
                 db.session.commit()
                 result = {
                     'status': 'OK',
@@ -156,46 +152,46 @@ class DeploymentTargetDetailApi(Resource):
             result = {
                 'status': 'ERROR',
                 'message': gettext('%(name)s not found (id=%(id)s).',
-                                   name=self.human_name, id=deployment_target_id)
+                                   name=self.human_name, id=metric_value_id)
             }
         return result, return_code
 
     @requires_auth
-    def patch(self, deployment_target_id):
+    def patch(self, metric_value_id):
         result = {'status': 'ERROR', 'message': gettext('Insufficient data.')}
         return_code = HTTPStatus.NOT_FOUND
 
         if log.isEnabledFor(logging.DEBUG):
             log.debug(gettext('Updating %s (id=%s)'), self.human_name,
-                      deployment_target_id)
+                      metric_value_id)
         if request.json:
             request_schema = partial_schema_factory(
-                DeploymentTargetCreateRequestSchema)
+                MetricValueCreateRequestSchema)
             # Ignore missing fields to allow partial updates
-            deployment_target = request_schema.load(request.json, partial=True)
-            response_schema = DeploymentTargetItemResponseSchema()
+            metric_value = request_schema.load(request.json, partial=True)
+            response_schema = MetricValueItemResponseSchema()
             try:
-                deployment_target.id = deployment_target_id
-                deployment_target = db.session.merge(deployment_target)
+                metric_value.id = metric_value_id
+                metric_value = db.session.merge(metric_value)
                 db.session.commit()
 
-                if deployment_target is not None:
+                if metric_value is not None:
                     return_code = HTTPStatus.OK
                     result = {
                         'status': 'OK',
                         'message': gettext(
                             '%(n)s (id=%(id)s) was updated with success!',
                             n=self.human_name,
-                            id=deployment_target_id),
+                            id=metric_value_id),
                         'data': [response_schema.dump(
-                            deployment_target)]
+                            metric_value)]
                     }
             except ValidationError as e:
                 result= {
                    'status': 'ERROR', 
                    'message': gettext('Invalid data for %(name)s (id=%(id)s)',
                                       name=self.human_name,
-                                      id=deployment_target_id),
+                                      id=metric_value_id),
                    'errors': translate_validation(e.messages)
                 }
             except Exception as e:

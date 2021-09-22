@@ -2,8 +2,9 @@
 import datetime
 import json
 from copy import deepcopy
-from marshmallow import Schema, fields, post_load
+from marshmallow import Schema, fields, post_load, post_dump, EXCLUDE, INCLUDE
 from marshmallow.validate import OneOf
+from flask_babel import gettext
 from seed.models import *
 
 
@@ -17,18 +18,35 @@ def partial_schema_factory(schema_cls):
     return schema
 
 
+def translate_validation(validation_errors):
+    for field, errors in list(validation_errors.items()):
+        if isinstance(errors, dict):
+            validation_errors[field] = translate_validation(errors)
+        else:
+            validation_errors[field] = [gettext(error) for error in errors]
+        return validation_errors
+
+
 def load_json(str_value):
     try:
         return json.loads(str_value)
     except BaseException:
-        return "Error loading JSON"
+        return None
 
 
 # region Protected
 # endregion
 
+class BaseSchema(Schema):
+    @post_dump
+    def remove_skip_values(self, data, **kwargs):
+        return {
+            key: value for key, value in data.items()
+            if value is not None  # Empty lists must be kept!
+        }
 
-class ClientCreateRequestSchema(Schema):
+
+class ClientCreateRequestSchema(BaseSchema):
     """ JSON serialization schema """
     name = fields.String(required=True)
     enabled = fields.Boolean(required=True)
@@ -36,32 +54,16 @@ class ClientCreateRequestSchema(Schema):
 
     # noinspection PyUnresolvedReferences
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         """ Deserialize data into an instance of Client"""
         return Client(**data)
 
     class Meta:
         ordered = True
+        unknown = EXCLUDE
 
 
-class ClientListResponseSchema(Schema):
-    """ JSON serialization schema """
-    id = fields.Integer(required=True)
-    name = fields.String(required=True)
-    enabled = fields.Boolean(required=True)
-    token = fields.String(required=True)
-
-    # noinspection PyUnresolvedReferences
-    @post_load
-    def make_object(self, data):
-        """ Deserialize data into an instance of Client"""
-        return Client(**data)
-
-    class Meta:
-        ordered = True
-
-
-class ClientItemResponseSchema(Schema):
+class ClientListResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
     name = fields.String(required=True)
@@ -70,58 +72,140 @@ class ClientItemResponseSchema(Schema):
 
     # noinspection PyUnresolvedReferences
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         """ Deserialize data into an instance of Client"""
         return Client(**data)
 
     class Meta:
         ordered = True
+        unknown = EXCLUDE
 
 
-class DeploymentCreateRequestSchema(Schema):
+class ClientItemResponseSchema(BaseSchema):
+    """ JSON serialization schema """
+    id = fields.Integer(required=True)
+    name = fields.String(required=True)
+    enabled = fields.Boolean(required=True)
+    token = fields.String(required=True)
+
+    # noinspection PyUnresolvedReferences
+    @post_load
+    def make_object(self, data, **kwargs):
+        """ Deserialize data into an instance of Client"""
+        return Client(**data)
+
+    class Meta:
+        ordered = True
+        unknown = EXCLUDE
+
+
+class DeploymentCreateRequestSchema(BaseSchema):
     """ JSON serialization schema """
     description = fields.String(required=False, allow_none=True)
-    created = fields.DateTime(required=True)
-    updated = fields.DateTime(required=True)
+    created = fields.DateTime(required=False, allow_none=True)
+    updated = fields.DateTime(required=False, allow_none=True)
     command = fields.String(required=False, allow_none=True)
     workflow_name = fields.String(required=True)
-    workflow_id = fields.Integer(required=True)
+    workflow_id = fields.Integer(required=False, allow_none=True)
     job_id = fields.Integer(required=False, allow_none=True)
+    model_id = fields.Integer(required=False, allow_none=True)
     user_id = fields.Integer(required=True)
     user_login = fields.String(required=True)
     user_name = fields.String(required=True)
-    enabled = fields.Boolean(required=True, missing=False)
-    current_status = fields.String(required=True, missing=DeploymentStatus.PENDING,
+    enabled = fields.Boolean(
+        required=False,
+        allow_none=True,
+        missing=False,
+        default=False)
+    current_status = fields.String(required=False, allow_none=True, missing=DeploymentStatus.PENDING, default=DeploymentStatus.PENDING,
                                    validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
-    attempts = fields.Integer(required=True, missing=0)
+    type = fields.String(required=False, allow_none=True, missing=DeploymentType.MODEL, default=DeploymentType.MODEL,
+                         validate=[OneOf(list(DeploymentType.__dict__.keys()))])
+    attempts = fields.Integer(
+        required=False,
+        allow_none=True,
+        missing=0,
+        default=0)
     entry_point = fields.String(required=False, allow_none=True)
+    replicas = fields.Integer(
+        required=False,
+        allow_none=True,
+        missing=1,
+        default=1)
+    request_memory = fields.String(
+        required=False,
+        allow_none=True,
+        missing='128M',
+        default='128M')
+    limit_memory = fields.String(required=False, allow_none=True)
+    request_cpu = fields.Decimal(
+        required=False,
+        allow_none=True,
+        missing=0.5,
+        default=0.5)
+    limit_cpu = fields.Decimal(required=False, allow_none=True)
+    extra_parameters = fields.String(required=False, allow_none=True)
+    input_spec = fields.String(required=False, allow_none=True)
+    output_spec = fields.String(required=False, allow_none=True)
     target_id = fields.Integer(required=True)
     image_id = fields.Integer(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         """ Deserialize data into an instance of Deployment"""
         return Deployment(**data)
 
     class Meta:
         ordered = True
+        unknown = EXCLUDE
 
 
-class DeploymentListResponseSchema(Schema):
+class DeploymentListResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
     description = fields.String(required=False, allow_none=True)
-    created = fields.DateTime(required=True)
-    updated = fields.DateTime(required=True)
+    created = fields.DateTime(required=False, allow_none=True)
+    updated = fields.DateTime(required=False, allow_none=True)
     command = fields.String(required=False, allow_none=True)
     job_id = fields.Integer(required=False, allow_none=True)
-    enabled = fields.Boolean(required=True, missing=False)
-    current_status = fields.String(required=True, missing=DeploymentStatus.PENDING,
+    model_id = fields.Integer(required=False, allow_none=True)
+    enabled = fields.Boolean(
+        required=False,
+        allow_none=True,
+        missing=False,
+        default=False)
+    current_status = fields.String(required=False, allow_none=True, missing=DeploymentStatus.PENDING, default=DeploymentStatus.PENDING,
                                    validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
-    attempts = fields.Integer(required=True, missing=0)
+    type = fields.String(required=False, allow_none=True, missing=DeploymentType.MODEL, default=DeploymentType.MODEL,
+                         validate=[OneOf(list(DeploymentType.__dict__.keys()))])
+    attempts = fields.Integer(
+        required=False,
+        allow_none=True,
+        missing=0,
+        default=0)
     log = fields.String(required=False, allow_none=True)
     entry_point = fields.String(required=False, allow_none=True)
+    replicas = fields.Integer(
+        required=False,
+        allow_none=True,
+        missing=1,
+        default=1)
+    request_memory = fields.String(
+        required=False,
+        allow_none=True,
+        missing='128M',
+        default='128M')
+    limit_memory = fields.String(required=False, allow_none=True)
+    request_cpu = fields.Decimal(
+        required=False,
+        allow_none=True,
+        missing=0.5,
+        default=0.5)
+    limit_cpu = fields.Decimal(required=False, allow_none=True)
+    extra_parameters = fields.String(required=False, allow_none=True)
+    input_spec = fields.String(required=False, allow_none=True)
+    output_spec = fields.String(required=False, allow_none=True)
     target = fields.Nested(
         'seed.schema.DeploymentTargetListResponseSchema',
         required=True)
@@ -141,27 +225,59 @@ class DeploymentListResponseSchema(Schema):
 
     # noinspection PyUnresolvedReferences
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         """ Deserialize data into an instance of Deployment"""
         return Deployment(**data)
 
     class Meta:
         ordered = True
+        unknown = EXCLUDE
 
 
-class DeploymentItemResponseSchema(Schema):
+class DeploymentItemResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
     description = fields.String(required=False, allow_none=True)
-    created = fields.DateTime(required=True)
-    updated = fields.DateTime(required=True)
+    created = fields.DateTime(required=False, allow_none=True)
+    updated = fields.DateTime(required=False, allow_none=True)
     command = fields.String(required=False, allow_none=True)
-    enabled = fields.Boolean(required=True, missing=False)
-    current_status = fields.String(required=True, missing=DeploymentStatus.PENDING,
+    model_id = fields.Integer(required=False, allow_none=True)
+    enabled = fields.Boolean(
+        required=False,
+        allow_none=True,
+        missing=False,
+        default=False)
+    current_status = fields.String(required=False, allow_none=True, missing=DeploymentStatus.PENDING, default=DeploymentStatus.PENDING,
                                    validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
-    attempts = fields.Integer(required=True, missing=0)
+    type = fields.String(required=False, allow_none=True, missing=DeploymentType.MODEL, default=DeploymentType.MODEL,
+                         validate=[OneOf(list(DeploymentType.__dict__.keys()))])
+    attempts = fields.Integer(
+        required=False,
+        allow_none=True,
+        missing=0,
+        default=0)
     log = fields.String(required=False, allow_none=True)
     entry_point = fields.String(required=False, allow_none=True)
+    replicas = fields.Integer(
+        required=False,
+        allow_none=True,
+        missing=1,
+        default=1)
+    request_memory = fields.String(
+        required=False,
+        allow_none=True,
+        missing='128M',
+        default='128M')
+    limit_memory = fields.String(required=False, allow_none=True)
+    request_cpu = fields.Decimal(
+        required=False,
+        allow_none=True,
+        missing=0.5,
+        default=0.5)
+    limit_cpu = fields.Decimal(required=False, allow_none=True)
+    extra_parameters = fields.String(required=False, allow_none=True)
+    input_spec = fields.String(required=False, allow_none=True)
+    output_spec = fields.String(required=False, allow_none=True)
     target = fields.Nested(
         'seed.schema.DeploymentTargetItemResponseSchema',
         required=True)
@@ -181,31 +297,16 @@ class DeploymentItemResponseSchema(Schema):
 
     # noinspection PyUnresolvedReferences
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         """ Deserialize data into an instance of Deployment"""
         return Deployment(**data)
 
     class Meta:
         ordered = True
+        unknown = EXCLUDE
 
 
-class DeploymentImageCreateRequestSchema(Schema):
-    """ JSON serialization schema """
-    name = fields.String(required=True)
-    tag = fields.String(required=True)
-    enabled = fields.Boolean(required=True)
-
-    # noinspection PyUnresolvedReferences
-    @post_load
-    def make_object(self, data):
-        """ Deserialize data into an instance of DeploymentImage"""
-        return DeploymentImage(**data)
-
-    class Meta:
-        ordered = True
-
-
-class DeploymentImageListResponseSchema(Schema):
+class DeploymentImageListResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
     name = fields.String(required=True)
@@ -214,15 +315,16 @@ class DeploymentImageListResponseSchema(Schema):
 
     # noinspection PyUnresolvedReferences
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         """ Deserialize data into an instance of DeploymentImage"""
         return DeploymentImage(**data)
 
     class Meta:
         ordered = True
+        unknown = EXCLUDE
 
 
-class DeploymentImageItemResponseSchema(Schema):
+class DeploymentImageItemResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
     name = fields.String(required=True)
@@ -231,15 +333,16 @@ class DeploymentImageItemResponseSchema(Schema):
 
     # noinspection PyUnresolvedReferences
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         """ Deserialize data into an instance of DeploymentImage"""
         return DeploymentImage(**data)
 
     class Meta:
         ordered = True
+        unknown = EXCLUDE
 
 
-class DeploymentImageCreateRequestSchema(Schema):
+class DeploymentImageCreateRequestSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
     name = fields.String(required=True)
@@ -248,68 +351,84 @@ class DeploymentImageCreateRequestSchema(Schema):
 
     # noinspection PyUnresolvedReferences
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         """ Deserialize data into an instance of DeploymentImage"""
         return DeploymentImage(**data)
 
     class Meta:
         ordered = True
+        unknown = EXCLUDE
 
 
-class DeploymentLogCreateRequestSchema(Schema):
+class DeploymentLogCreateRequestSchema(BaseSchema):
     """ JSON serialization schema """
-    date = fields.DateTime(required=True, missing=datetime.datetime.utcnow)
+    date = fields.DateTime(
+        required=False,
+        allow_none=True,
+        missing=datetime.datetime.utcnow,
+        default=datetime.datetime.utcnow)
     status = fields.String(required=True,
                            validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
     log = fields.String(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         """ Deserialize data into an instance of DeploymentLog"""
         return DeploymentLog(**data)
 
     class Meta:
         ordered = True
+        unknown = EXCLUDE
 
 
-class DeploymentLogListResponseSchema(Schema):
+class DeploymentLogListResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
-    date = fields.DateTime(required=True, missing=datetime.datetime.utcnow)
+    date = fields.DateTime(
+        required=False,
+        allow_none=True,
+        missing=datetime.datetime.utcnow,
+        default=datetime.datetime.utcnow)
     status = fields.String(required=True,
                            validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
     log = fields.String(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         """ Deserialize data into an instance of DeploymentLog"""
         return DeploymentLog(**data)
 
     class Meta:
         ordered = True
+        unknown = EXCLUDE
 
 
-class DeploymentLogItemResponseSchema(Schema):
+class DeploymentLogItemResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
-    date = fields.DateTime(required=True, missing=datetime.datetime.utcnow)
+    date = fields.DateTime(
+        required=False,
+        allow_none=True,
+        missing=datetime.datetime.utcnow,
+        default=datetime.datetime.utcnow)
     status = fields.String(required=True,
                            validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
     log = fields.String(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         """ Deserialize data into an instance of DeploymentLog"""
         return DeploymentLog(**data)
 
     class Meta:
         ordered = True
+        unknown = EXCLUDE
 
 
-class DeploymentMetricCreateRequestSchema(Schema):
+class DeploymentMetricCreateRequestSchema(BaseSchema):
     """ JSON serialization schema """
     name = fields.String(required=True)
     parameters = fields.String(required=True)
@@ -319,34 +438,16 @@ class DeploymentMetricCreateRequestSchema(Schema):
 
     # noinspection PyUnresolvedReferences
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         """ Deserialize data into an instance of DeploymentMetric"""
         return DeploymentMetric(**data)
 
     class Meta:
         ordered = True
+        unknown = EXCLUDE
 
 
-class DeploymentMetricListResponseSchema(Schema):
-    """ JSON serialization schema """
-    id = fields.Integer(required=True)
-    name = fields.String(required=True)
-    parameters = fields.String(required=True)
-    enabled = fields.Boolean(required=True)
-    user_id = fields.Integer(required=True)
-    user_login = fields.String(required=True)
-
-    # noinspection PyUnresolvedReferences
-    @post_load
-    def make_object(self, data):
-        """ Deserialize data into an instance of DeploymentMetric"""
-        return DeploymentMetric(**data)
-
-    class Meta:
-        ordered = True
-
-
-class DeploymentMetricItemResponseSchema(Schema):
+class DeploymentMetricListResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
     name = fields.String(required=True)
@@ -357,15 +458,36 @@ class DeploymentMetricItemResponseSchema(Schema):
 
     # noinspection PyUnresolvedReferences
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         """ Deserialize data into an instance of DeploymentMetric"""
         return DeploymentMetric(**data)
 
     class Meta:
         ordered = True
+        unknown = EXCLUDE
 
 
-class DeploymentTargetCreateRequestSchema(Schema):
+class DeploymentMetricItemResponseSchema(BaseSchema):
+    """ JSON serialization schema """
+    id = fields.Integer(required=True)
+    name = fields.String(required=True)
+    parameters = fields.String(required=True)
+    enabled = fields.Boolean(required=True)
+    user_id = fields.Integer(required=True)
+    user_login = fields.String(required=True)
+
+    # noinspection PyUnresolvedReferences
+    @post_load
+    def make_object(self, data, **kwargs):
+        """ Deserialize data into an instance of DeploymentMetric"""
+        return DeploymentMetric(**data)
+
+    class Meta:
+        ordered = True
+        unknown = EXCLUDE
+
+
+class DeploymentTargetCreateRequestSchema(BaseSchema):
     """ JSON serialization schema """
     name = fields.String(required=True)
     description = fields.String(required=False, allow_none=True)
@@ -378,15 +500,16 @@ class DeploymentTargetCreateRequestSchema(Schema):
 
     # noinspection PyUnresolvedReferences
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         """ Deserialize data into an instance of DeploymentTarget"""
         return DeploymentTarget(**data)
 
     class Meta:
         ordered = True
+        unknown = EXCLUDE
 
 
-class DeploymentTargetListResponseSchema(Schema):
+class DeploymentTargetListResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
     name = fields.String(required=True)
@@ -398,15 +521,16 @@ class DeploymentTargetListResponseSchema(Schema):
 
     # noinspection PyUnresolvedReferences
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         """ Deserialize data into an instance of DeploymentTarget"""
         return DeploymentTarget(**data)
 
     class Meta:
         ordered = True
+        unknown = EXCLUDE
 
 
-class DeploymentTargetItemResponseSchema(Schema):
+class DeploymentTargetItemResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
     name = fields.String(required=True)
@@ -420,157 +544,11 @@ class DeploymentTargetItemResponseSchema(Schema):
 
     # noinspection PyUnresolvedReferences
     @post_load
-    def make_object(self, data):
+    def make_object(self, data, **kwargs):
         """ Deserialize data into an instance of DeploymentTarget"""
         return DeploymentTarget(**data)
 
     class Meta:
         ordered = True
-
-
-class TraceabilityCreateRequestSchema(Schema):
-    """ JSON serialization schema """
-    source_id = fields.Integer(required=True)
-    source_type = fields.String(required=True,
-                                validate=[OneOf(list(AuditableType.__dict__.keys()))])
-    target_id = fields.Integer(required=True)
-    target_type = fields.String(required=True,
-                                validate=[OneOf(list(AuditableType.__dict__.keys()))])
-    created = fields.DateTime(required=True)
-    user_id = fields.Integer(required=True)
-    user_login = fields.String(required=True)
-    user_name = fields.String(required=True)
-    context = fields.String(required=True)
-    module = fields.String(required=True,
-                           validate=[OneOf(list(ModuleType.__dict__.keys()))])
-    action = fields.String(required=True,
-                           validate=[OneOf(list(ActionType.__dict__.keys()))])
-    job_id = fields.Integer(required=False, allow_none=True)
-    workflow_id = fields.Integer(required=False, allow_none=True)
-    workflow_name = fields.String(required=False, allow_none=True)
-    task_id = fields.String(required=False, allow_none=True)
-    task_name = fields.String(required=False, allow_none=True)
-    task_type = fields.String(required=False, allow_none=True)
-    risk_score = fields.Float(required=False, allow_none=True)
-    platform_id = fields.Integer(required=False, allow_none=True)
-
-    # noinspection PyUnresolvedReferences
-    @post_load
-    def make_object(self, data):
-        """ Deserialize data into an instance of Traceability"""
-        return Traceability(**data)
-
-    class Meta:
-        ordered = True
-
-
-class TraceabilityListResponseSchema(Schema):
-    """ JSON serialization schema """
-    id = fields.Integer(required=True)
-    source_id = fields.Integer(required=True)
-    source_type = fields.String(required=True,
-                                validate=[OneOf(list(AuditableType.__dict__.keys()))])
-    target_id = fields.Integer(required=True)
-    target_type = fields.String(required=True,
-                                validate=[OneOf(list(AuditableType.__dict__.keys()))])
-    created = fields.DateTime(required=True)
-    user_id = fields.Integer(required=True)
-    user_login = fields.String(required=True)
-    user_name = fields.String(required=True)
-    context = fields.String(required=True)
-    module = fields.String(required=True,
-                           validate=[OneOf(list(ModuleType.__dict__.keys()))])
-    action = fields.String(required=True,
-                           validate=[OneOf(list(ActionType.__dict__.keys()))])
-    job_id = fields.Integer(required=False, allow_none=True)
-    workflow_id = fields.Integer(required=False, allow_none=True)
-    workflow_name = fields.String(required=False, allow_none=True)
-    task_id = fields.String(required=False, allow_none=True)
-    task_name = fields.String(required=False, allow_none=True)
-    task_type = fields.String(required=False, allow_none=True)
-    risk_score = fields.Float(required=False, allow_none=True)
-    platform_id = fields.Integer(required=False, allow_none=True)
-
-    # noinspection PyUnresolvedReferences
-    @post_load
-    def make_object(self, data):
-        """ Deserialize data into an instance of Traceability"""
-        return Traceability(**data)
-
-    class Meta:
-        ordered = True
-
-
-class TraceabilityItemResponseSchema(Schema):
-    """ JSON serialization schema """
-    id = fields.Integer(required=True)
-    source_id = fields.Integer(required=True)
-    source_type = fields.String(required=True,
-                                validate=[OneOf(list(AuditableType.__dict__.keys()))])
-    target_id = fields.Integer(required=True)
-    target_type = fields.String(required=True,
-                                validate=[OneOf(list(AuditableType.__dict__.keys()))])
-    created = fields.DateTime(required=True)
-    user_id = fields.Integer(required=True)
-    user_login = fields.String(required=True)
-    user_name = fields.String(required=True)
-    context = fields.String(required=True)
-    module = fields.String(required=True,
-                           validate=[OneOf(list(ModuleType.__dict__.keys()))])
-    action = fields.String(required=True,
-                           validate=[OneOf(list(ActionType.__dict__.keys()))])
-    job_id = fields.Integer(required=False, allow_none=True)
-    workflow_id = fields.Integer(required=False, allow_none=True)
-    workflow_name = fields.String(required=False, allow_none=True)
-    task_id = fields.String(required=False, allow_none=True)
-    task_name = fields.String(required=False, allow_none=True)
-    task_type = fields.String(required=False, allow_none=True)
-    risk_score = fields.Float(required=False, allow_none=True)
-    platform_id = fields.Integer(required=False, allow_none=True)
-
-    # noinspection PyUnresolvedReferences
-    @post_load
-    def make_object(self, data):
-        """ Deserialize data into an instance of Traceability"""
-        return Traceability(**data)
-
-    class Meta:
-        ordered = True
-
-
-class TraceabilityCreateRequestSchema(Schema):
-    """ JSON serialization schema """
-    id = fields.Integer(required=True)
-    source_id = fields.Integer(required=True)
-    source_type = fields.String(required=True,
-                                validate=[OneOf(list(AuditableType.__dict__.keys()))])
-    target_id = fields.Integer(required=True)
-    target_type = fields.String(required=True,
-                                validate=[OneOf(list(AuditableType.__dict__.keys()))])
-    created = fields.DateTime(required=True)
-    user_id = fields.Integer(required=True)
-    user_login = fields.String(required=True)
-    user_name = fields.String(required=True)
-    context = fields.String(required=True)
-    module = fields.String(required=True,
-                           validate=[OneOf(list(ModuleType.__dict__.keys()))])
-    action = fields.String(required=True,
-                           validate=[OneOf(list(ActionType.__dict__.keys()))])
-    job_id = fields.Integer(required=False, allow_none=True)
-    workflow_id = fields.Integer(required=False, allow_none=True)
-    workflow_name = fields.String(required=False, allow_none=True)
-    task_id = fields.String(required=False, allow_none=True)
-    task_name = fields.String(required=False, allow_none=True)
-    task_type = fields.String(required=False, allow_none=True)
-    risk_score = fields.Float(required=False, allow_none=True)
-    platform_id = fields.Integer(required=False, allow_none=True)
-
-    # noinspection PyUnresolvedReferences
-    @post_load
-    def make_object(self, data):
-        """ Deserialize data into an instance of Traceability"""
-        return Traceability(**data)
-
-    class Meta:
-        ordered = True
+        unknown = EXCLUDE
 
