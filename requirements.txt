@@ -12,6 +12,7 @@ coverage==5.5
 eventlet==0.32.0
 flask-rq2==18.3
 flask-swagger-ui==3.36.0
+jinka2=2.0.1
 marshmallow==3.13.0
 psycopg2-binary==2.9.1
 pyaml==21.8.3
