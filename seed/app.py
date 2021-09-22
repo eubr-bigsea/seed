@@ -16,6 +16,8 @@ import os
 import eventlet.wsgi
 import sqlalchemy_utils
 import yaml
+
+from flask_migrate import Migrate
 from flask import Flask
 from flask import request
 from flask_babel import get_locale, Babel
@@ -120,6 +122,8 @@ def main(is_main_module):
         # app.config.from_object(rq_dashboard.default_settings)
         # app.config.from_object(app.config)
         # app.register_blueprint(rq_dashboard.blueprint, url_prefix='/dashboard')
+
+        migrate = Migrate(app, db)
 
         port = int(config.get('port', 5000))
         logger.debug('Running in %s mode', config.get('environment'))
