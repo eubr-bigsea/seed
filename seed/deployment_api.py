@@ -1,23 +1,19 @@
 # -*- coding: utf-8 -*-}
-from seed.app_auth import requires_auth
-from flask import request, current_app, g as flask_globals
-from flask_restful import Resource
-
 import math
 import logging
-from seed.schema import *
-from flask_babel import gettext
+
+from seed.app_auth import requires_auth, requires_permission
+from flask import request, current_app, g as flask_globals
+from flask_restful import Resource
 from sqlalchemy import or_
+from http import HTTPStatus
+from marshmallow.exceptions import ValidationError
+
+from seed.schema import *
+from seed.util import translate_validation
+from flask_babel import gettext
 
 log = logging.getLogger(__name__)
-
-
-def translate_validation(validation_errors):
-    for field, errors in list(validation_errors.items()):
-        validation_errors[field] = [gettext(error) for error in errors]
-    return validation_errors
-
-
 # region Protected
 
 def schedule_deployment_job(deployment_id, locale):
@@ -30,7 +26,6 @@ def schedule_deployment_job(deployment_id, locale):
 
 
 # endregion
-
 
 class DeploymentListApi(Resource):
     """ REST API for listing class Deployment """
@@ -50,22 +45,15 @@ class DeploymentListApi(Resource):
             deployments = Deployment.query.filter(
                 Deployment.enabled == (enabled_filter != 'false'))
         else:
-            deployments = Deployment.query.all()
+            deployments = Deployment.query
 
         sort = request.args.get('sort', 'description')
         if sort not in ['description']:
-            sort = 'id'
+            sort = 'description'
         sort_option = getattr(Deployment, sort)
         if request.args.get('asc', 'true') == 'false':
             sort_option = sort_option.desc()
         deployments = deployments.order_by(sort_option)
-
-        q_filter = request.args.get('q')
-        if q_filter:
-            find_pattern = '%%{}%%'.format(q_filter.replace(" ", "%"))
-            deployments = deployments.filter(or_(
-                Deployment.description.like(find_pattern),
-                Deployment.user_name.like(find_pattern)))
 
         page = request.args.get('page') or '1'
         if page is not None and page.isdigit():
@@ -73,8 +61,8 @@ class DeploymentListApi(Resource):
             page = int(page)
             pagination = deployments.paginate(page, page_size, True)
             result = {
-                'data': DeploymentListResponseSchema(many=True, only=only).dump(
-                    pagination.items).data,
+                'data': DeploymentListResponseSchema(
+                    many=True, only=only).dump(pagination.items),
                 'pagination': {
                     'page': page, 'size': page_size,
                     'total': pagination.total,
@@ -82,8 +70,9 @@ class DeploymentListApi(Resource):
             }
         else:
             result = {
-                'data': DeploymentListResponseSchema(many=True, only=only).dump(
-                    deployments).data}
+                'data': DeploymentListResponseSchema(
+                    many=True, only=only).dump(
+                    deployments)}
 
         if log.isEnabledFor(logging.DEBUG):
             log.debug(gettext('Listing %(name)s', name=self.human_name))
@@ -93,41 +82,42 @@ class DeploymentListApi(Resource):
     def post(self):
         result = {'status': 'ERROR',
                   'message': gettext("Missing json in the request body")}
-        return_code = 400
+        return_code = HTTPStatus.BAD_REQUEST
         
         if request.json is not None:
-            request_schema = DeploymentCreateRequestSchema()
-            response_schema = DeploymentItemResponseSchema()
-            form = request_schema.load(request.json)
-
             request.json['created'] = datetime.datetime.utcnow().isoformat()
             request.json['updated'] = request.json['created']
             request.json['user_id'] = flask_globals.user.id
             request.json['user_login'] = flask_globals.user.login
             request.json['user_name'] = flask_globals.user.name
 
-            if form.errors:
+            request_schema = DeploymentCreateRequestSchema()
+            response_schema = DeploymentItemResponseSchema()
+            deployment = request_schema.load(request.json)
+            try:
+                if log.isEnabledFor(logging.DEBUG):
+                    log.debug(gettext('Adding %s'), self.human_name)
+                deployment = deployment
+                db.session.add(deployment)
+                db.session.commit()
+                result = response_schema.dump(deployment)
+                return_code = HTTPStatus.CREATED
+            except ValidationError as e:
+                result= {
+                   'status': 'ERROR', 
+                   'message': gettext('Invalid data for %(name)s.)',
+                                      name=self.human_name),
+                   'errors': translate_validation(e.messages)
+                }
+            except Exception as e:
                 result = {'status': 'ERROR',
-                          'message': gettext("Validation error"),
-                          'errors': translate_validation(form.errors)}
-            else:
-                try:
-                    if log.isEnabledFor(logging.DEBUG):
-                        log.debug(gettext('Adding %s'), self.human_name)
-                    deployment = form.data
-                    db.session.add(deployment)
-                    db.session.commit()
-                    result = response_schema.dump(deployment).data
-                    return_code = 200
-                except Exception as e:
-                    result = {'status': 'ERROR',
-                              'message': gettext("Internal error")}
-                    return_code = 500
-                    if current_app.debug:
-                        result['debug_detail'] = str(e)
+                          'message': gettext("Internal error")}
+                return_code = 500
+                if current_app.debug:
+                    result['debug_detail'] = str(e)
 
-                    log.exception(e)
-                    db.session.rollback()
+                log.exception(e)
+                db.session.rollback()
 
         return result, return_code
 
@@ -145,15 +135,15 @@ class DeploymentDetailApi(Resource):
                       deployment_id)
 
         deployment = Deployment.query.get(deployment_id)
-        return_code = 200
+        return_code = HTTPStatus.OK
         if deployment is not None:
             result = {
                 'status': 'OK',
                 'data': [DeploymentItemResponseSchema().dump(
-                    deployment).data]
+                    deployment)]
             }
         else:
-            return_code = 404
+            return_code = HTTPStatus.NOT_FOUND
             result = {
                 'status': 'ERROR',
                 'message': gettext(
@@ -165,7 +155,7 @@ class DeploymentDetailApi(Resource):
 
     @requires_auth
     def delete(self, deployment_id):
-        return_code = 200
+        return_code = HTTPStatus.NO_CONTENT
         if log.isEnabledFor(logging.DEBUG):
             log.debug(gettext('Deleting %s (id=%s)'), self.human_name,
                       deployment_id)
@@ -182,12 +172,12 @@ class DeploymentDetailApi(Resource):
             except Exception as e:
                 result = {'status': 'ERROR',
                           'message': gettext("Internal error")}
-                return_code = 500
+                return_code = HTTPStatus.INTERNAL_SERVER_ERROR
                 if current_app.debug:
                     result['debug_detail'] = str(e)
                 db.session.rollback()
         else:
-            return_code = 404
+            return_code = HTTPStatus.NOT_FOUND
             result = {
                 'status': 'ERROR',
                 'message': gettext('%(name)s not found (id=%(id)s).',
@@ -198,7 +188,7 @@ class DeploymentDetailApi(Resource):
     @requires_auth
     def patch(self, deployment_id):
         result = {'status': 'ERROR', 'message': gettext('Insufficient data.')}
-        return_code = 404
+        return_code = HTTPStatus.NOT_FOUND
 
         if log.isEnabledFor(logging.DEBUG):
             log.debug(gettext('Updating %s (id=%s)'), self.human_name,
@@ -207,38 +197,37 @@ class DeploymentDetailApi(Resource):
             request_schema = partial_schema_factory(
                 DeploymentCreateRequestSchema)
             # Ignore missing fields to allow partial updates
-            form = request_schema.load(request.json, partial=True)
+            deployment = request_schema.load(request.json, partial=True)
             response_schema = DeploymentItemResponseSchema()
-            if not form.errors:
-                try:
-                    form.data.id = deployment_id
-                    deployment = db.session.merge(form.data)
-                    db.session.commit()
+            try:
+                deployment.id = deployment_id
+                deployment = db.session.merge(deployment)
+                db.session.commit()
 
-                    if deployment is not None:
-                        return_code = 200
-                        result = {
-                            'status': 'OK',
-                            'message': gettext(
-                                '%(n)s (id=%(id)s) was updated with success!',
-                                n=self.human_name,
-                                id=deployment_id),
-                            'data': [response_schema.dump(
-                                deployment).data]
-                        }
-                except Exception as e:
-                    result = {'status': 'ERROR',
-                              'message': gettext("Internal error")}
-                    return_code = 500
-                    if current_app.debug:
-                        result['debug_detail'] = str(e)
-                    db.session.rollback()
-            else:
-                result = {
-                    'status': 'ERROR',
-                    'message': gettext('Invalid data for %(name)s (id=%(id)s)',
-                                       name=self.human_name,
-                                       id=deployment_id),
-                    'errors': form.errors
+                if deployment is not None:
+                    return_code = HTTPStatus.OK
+                    result = {
+                        'status': 'OK',
+                        'message': gettext(
+                            '%(n)s (id=%(id)s) was updated with success!',
+                            n=self.human_name,
+                            id=deployment_id),
+                        'data': [response_schema.dump(
+                            deployment)]
+                    }
+            except ValidationError as e:
+                result= {
+                   'status': 'ERROR', 
+                   'message': gettext('Invalid data for %(name)s (id=%(id)s)',
+                                      name=self.human_name,
+                                      id=deployment_id),
+                   'errors': translate_validation(e.messages)
                 }
+            except Exception as e:
+                result = {'status': 'ERROR',
+                          'message': gettext("Internal error")}
+                return_code = 500
+                if current_app.debug:
+                    result['debug_detail'] = str(e)
+                db.session.rollback()
         return result, return_code
