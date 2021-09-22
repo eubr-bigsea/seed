@@ -103,7 +103,6 @@ def main(is_main_module):
         app.config['SQLALCHEMY_POOL_RECYCLE'] = 240
 
         app.config['RQ_REDIS_URL'] = config['servers']['redis_url']
-        print(app.config['RQ_REDIS_URL'])
 
         app.config['BABEL_TRANSLATION_DIRECTORIES'] = 'i18n/locales'
         app.config['BABEL_DEFAULT_LOCALE'] = 'UTC'
