@@ -1,21 +1,19 @@
 # -*- coding: utf-8 -*-}
-from seed.app_auth import requires_auth
+import math
+import logging
+
+from seed.app_auth import requires_auth, requires_permission
 from flask import request, current_app, g as flask_globals
 from flask_restful import Resource
 from sqlalchemy import or_
+from http import HTTPStatus
+from marshmallow.exceptions import ValidationError
 
-import math
-import logging
 from seed.schema import *
+from seed.util import translate_validation
 from flask_babel import gettext
 
 log = logging.getLogger(__name__)
-
-
-def translate_validation(validation_errors):
-    for field, errors in list(validation_errors.items()):
-        validation_errors[field] = [gettext(error) for error in errors]
-    return validation_errors
 
 
 class DeploymentMetricListApi(Resource):
@@ -36,7 +34,7 @@ class DeploymentMetricListApi(Resource):
             deployment_metrics = DeploymentMetric.query.filter(
                 DeploymentMetric.enabled == (enabled_filter != 'false'))
         else:
-            deployment_metrics = DeploymentMetric.query.all()
+            deployment_metrics = DeploymentMetric.query
 
         page = request.args.get('page') or '1'
         if page is not None and page.isdigit():
@@ -45,7 +43,7 @@ class DeploymentMetricListApi(Resource):
             pagination = deployment_metrics.paginate(page, page_size, True)
             result = {
                 'data': DeploymentMetricListResponseSchema(
-                    many=True, only=only).dump(pagination.items).data,
+                    many=True, only=only).dump(pagination.items),
                 'pagination': {
                     'page': page, 'size': page_size,
                     'total': pagination.total,
@@ -55,7 +53,7 @@ class DeploymentMetricListApi(Resource):
             result = {
                 'data': DeploymentMetricListResponseSchema(
                     many=True, only=only).dump(
-                    deployment_metrics).data}
+                    deployment_metrics)}
 
         if log.isEnabledFor(logging.DEBUG):
             log.debug(gettext('Listing %(name)s', name=self.human_name))
@@ -65,34 +63,36 @@ class DeploymentMetricListApi(Resource):
     def post(self):
         result = {'status': 'ERROR',
                   'message': gettext("Missing json in the request body")}
-        return_code = 400
+        return_code = HTTPStatus.BAD_REQUEST
         
         if request.json is not None:
             request_schema = DeploymentMetricCreateRequestSchema()
             response_schema = DeploymentMetricItemResponseSchema()
-            form = request_schema.load(request.json)
-            if form.errors:
+            deployment_metric = request_schema.load(request.json)
+            try:
+                if log.isEnabledFor(logging.DEBUG):
+                    log.debug(gettext('Adding %s'), self.human_name)
+                deployment_metric = deployment_metric
+                db.session.add(deployment_metric)
+                db.session.commit()
+                result = response_schema.dump(deployment_metric)
+                return_code = HTTPStatus.CREATED
+            except ValidationError as e:
+                result= {
+                   'status': 'ERROR', 
+                   'message': gettext('Invalid data for %(name)s.)',
+                                      name=self.human_name),
+                   'errors': translate_validation(e.messages)
+                }
+            except Exception as e:
                 result = {'status': 'ERROR',
-                          'message': gettext("Validation error"),
-                          'errors': translate_validation(form.errors)}
-            else:
-                try:
-                    if log.isEnabledFor(logging.DEBUG):
-                        log.debug(gettext('Adding %s'), self.human_name)
-                    deployment_metric = form.data
-                    db.session.add(deployment_metric)
-                    db.session.commit()
-                    result = response_schema.dump(deployment_metric).data
-                    return_code = 200
-                except Exception as e:
-                    result = {'status': 'ERROR',
-                              'message': gettext("Internal error")}
-                    return_code = 500
-                    if current_app.debug:
-                        result['debug_detail'] = str(e)
+                          'message': gettext("Internal error")}
+                return_code = 500
+                if current_app.debug:
+                    result['debug_detail'] = str(e)
 
-                    log.exception(e)
-                    db.session.rollback()
+                log.exception(e)
+                db.session.rollback()
 
         return result, return_code
 
@@ -110,15 +110,15 @@ class DeploymentMetricDetailApi(Resource):
                       deployment_metric_id)
 
         deployment_metric = DeploymentMetric.query.get(deployment_metric_id)
-        return_code = 200
+        return_code = HTTPStatus.OK
         if deployment_metric is not None:
             result = {
                 'status': 'OK',
                 'data': [DeploymentMetricItemResponseSchema().dump(
-                    deployment_metric).data]
+                    deployment_metric)]
             }
         else:
-            return_code = 404
+            return_code = HTTPStatus.NOT_FOUND
             result = {
                 'status': 'ERROR',
                 'message': gettext(
@@ -130,7 +130,7 @@ class DeploymentMetricDetailApi(Resource):
 
     @requires_auth
     def delete(self, deployment_metric_id):
-        return_code = 200
+        return_code = HTTPStatus.NO_CONTENT
         if log.isEnabledFor(logging.DEBUG):
             log.debug(gettext('Deleting %s (id=%s)'), self.human_name,
                       deployment_metric_id)
@@ -147,12 +147,12 @@ class DeploymentMetricDetailApi(Resource):
             except Exception as e:
                 result = {'status': 'ERROR',
                           'message': gettext("Internal error")}
-                return_code = 500
+                return_code = HTTPStatus.INTERNAL_SERVER_ERROR
                 if current_app.debug:
                     result['debug_detail'] = str(e)
                 db.session.rollback()
         else:
-            return_code = 404
+            return_code = HTTPStatus.NOT_FOUND
             result = {
                 'status': 'ERROR',
                 'message': gettext('%(name)s not found (id=%(id)s).',
@@ -163,7 +163,7 @@ class DeploymentMetricDetailApi(Resource):
     @requires_auth
     def patch(self, deployment_metric_id):
         result = {'status': 'ERROR', 'message': gettext('Insufficient data.')}
-        return_code = 404
+        return_code = HTTPStatus.NOT_FOUND
 
         if log.isEnabledFor(logging.DEBUG):
             log.debug(gettext('Updating %s (id=%s)'), self.human_name,
@@ -172,38 +172,37 @@ class DeploymentMetricDetailApi(Resource):
             request_schema = partial_schema_factory(
                 DeploymentMetricCreateRequestSchema)
             # Ignore missing fields to allow partial updates
-            form = request_schema.load(request.json, partial=True)
+            deployment_metric = request_schema.load(request.json, partial=True)
             response_schema = DeploymentMetricItemResponseSchema()
-            if not form.errors:
-                try:
-                    form.data.id = deployment_metric_id
-                    deployment_metric = db.session.merge(form.data)
-                    db.session.commit()
+            try:
+                deployment_metric.id = deployment_metric_id
+                deployment_metric = db.session.merge(deployment_metric)
+                db.session.commit()
 
-                    if deployment_metric is not None:
-                        return_code = 200
-                        result = {
-                            'status': 'OK',
-                            'message': gettext(
-                                '%(n)s (id=%(id)s) was updated with success!',
-                                n=self.human_name,
-                                id=deployment_metric_id),
-                            'data': [response_schema.dump(
-                                deployment_metric).data]
-                        }
-                except Exception as e:
-                    result = {'status': 'ERROR',
-                              'message': gettext("Internal error")}
-                    return_code = 500
-                    if current_app.debug:
-                        result['debug_detail'] = str(e)
-                    db.session.rollback()
-            else:
-                result = {
-                    'status': 'ERROR',
-                    'message': gettext('Invalid data for %(name)s (id=%(id)s)',
-                                       name=self.human_name,
-                                       id=deployment_metric_id),
-                    'errors': form.errors
+                if deployment_metric is not None:
+                    return_code = HTTPStatus.OK
+                    result = {
+                        'status': 'OK',
+                        'message': gettext(
+                            '%(n)s (id=%(id)s) was updated with success!',
+                            n=self.human_name,
+                            id=deployment_metric_id),
+                        'data': [response_schema.dump(
+                            deployment_metric)]
+                    }
+            except ValidationError as e:
+                result= {
+                   'status': 'ERROR', 
+                   'message': gettext('Invalid data for %(name)s (id=%(id)s)',
+                                      name=self.human_name,
+                                      id=deployment_metric_id),
+                   'errors': translate_validation(e.messages)
                 }
+            except Exception as e:
+                result = {'status': 'ERROR',
+                          'message': gettext("Internal error")}
+                return_code = 500
+                if current_app.debug:
+                    result['debug_detail'] = str(e)
+                db.session.rollback()
         return result, return_code

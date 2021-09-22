@@ -7,9 +7,39 @@ A micro-service aimed to deploy models created in the Lemonade Project.
 
 ## Running
 
-```
-PYTHONPATH=. SEED_CONFIG=../seed.yaml python seed/app.py
+Seed requires Python 3.7 or greater. Also, you need the a running MySQL or MariaDB and Redis server running. 
 
+First, clone the repository:
+
+```
+% git clone git@github.com:eubr-bigsea/seed.git
+```
+Change to seed directory, create a virtualenv and activate it:
+
+```
+% cd seed
+% python3 -m venv venv
+% source venv/bin/activate
+```
+Copy and change the sample configuration:
+
+```
+% cp conf/seed.yaml.template seed.yaml
+```
+
+Set environment variables (suggestion: create a shell file and add these commands):
+
+```
+% export SEED_CONFIG=seed.yaml
+% export FLASK_APP=seed.app
+% export FLASK_ENV=development
+% export PYTHONPATH=.
+```
+
+Run the Flask application:
+
+```
+flask run  -p 3326
 ```
 
 ## Executing `rq` workers
@@ -17,11 +47,10 @@ PYTHONPATH=. SEED_CONFIG=../seed.yaml python seed/app.py
 To start workers, you need to run the command from the Seed project directory:
 
 ```
-$ SEED_CONFIG=../seed.yaml FLASK_APP=seed/app.py flask rq worker
-```
-`rq` will connect to Redis running in the local host. If you want it to connect to a different host, use the following command,
-changing the url accordingly:
+% flask rq worker
 
 ```
-SEED_CONFIG=../seed.yaml FLASK_APP=seed/app.py python -m flask rq worker -v -n auditing --logging_level DEBUG auditing
+`rq` will connect to Redis running in the local host. If you want it to connect to a different host, use the following command,
+changing the url accordingly.
+
 ```

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # noinspection PyBroadException
-from seed.actuator_api import TMAActuatorApi
 
 try:
     import eventlet
@@ -17,10 +16,10 @@ import os
 import eventlet.wsgi
 import sqlalchemy_utils
 import yaml
+
+from flask_migrate import Migrate
 from flask import Flask
 from flask import request
-from flask_admin import Admin
-from flask_admin.babel import gettext
 from flask_babel import get_locale, Babel
 from flask_cors import CORS
 from flask_restful import Api
@@ -32,8 +31,6 @@ from seed.deployment_image_api import DeploymentImageListApi
 from seed.deployment_target_api import DeploymentTargetDetailApi
 from seed.deployment_target_api import DeploymentTargetListApi
 from seed.models import db
-from seed.traceability_api import TraceabilityDetailApi
-from seed.traceability_api import TraceabilityListApi
 
 sqlalchemy_utils.i18n.get_locale = get_locale
 
@@ -45,8 +42,6 @@ babel = Babel(app)
 logging.config.fileConfig('logging_config.ini')
 
 app.secret_key = 'l3m0n4d1'
-# Flask Admin 
-admin = Admin(app, name='Lemonade Seed', template_mode='bootstrap3')
 
 # CORS
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -59,9 +54,6 @@ mappings = {
     '/images': DeploymentImageListApi,
     '/targets/<int:job_id>/<deployment_target_id>': DeploymentTargetDetailApi,
     '/targets': DeploymentTargetListApi,
-    '/traceability': TraceabilityListApi,
-    '/traceability/<int:traceability_id>': TraceabilityDetailApi,
-    '/actuators': TMAActuatorApi
 }
 for path, view in list(mappings.items()):
     api.add_resource(view, path)
@@ -127,12 +119,13 @@ def main(is_main_module):
         # app.config.from_object(app.config)
         # app.register_blueprint(rq_dashboard.blueprint, url_prefix='/dashboard')
 
+        migrate = Migrate(app, db)
+
         port = int(config.get('port', 5000))
         logger.debug('Running in %s mode', config.get('environment'))
 
         if is_main_module:
             if config.get('environment', 'dev') == 'dev':
-                # admin.add_view(ModelView(Dashboard, db.session))
                 app.run(debug=True, port=port)
             else:
                 eventlet.wsgi.server(eventlet.listen(('', port)), app)

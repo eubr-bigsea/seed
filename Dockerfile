@@ -15,6 +15,7 @@ LABEL maintainer="Speed Labs"
 RUN apk add --no-cache dumb-init libffi-dev
 
 ENV SEED_HOME /usr/local/seed
+ENV SEED_CONFIG $SEED_HOME/conf/seed-config.yaml
 
 COPY --from=pip_builder /usr/local /usr/local
 

@@ -7,7 +7,7 @@ function start_server
 
 function db_migrate
 {
-  python ${SEED_HOME}/seed/manage.py db upgrade
+  flask db upgrade
 
   if [ $? -eq 0 ]
   then
@@ -34,8 +34,8 @@ case $CMD in
     ;;
 
   (worker)
-    python -m flask rq worker -v -n auditing \
-      --logging_level DEBUG auditing
+    python -m flask rq worker \
+      --logging_level DEBUG 
     ;;
 
   (*)
