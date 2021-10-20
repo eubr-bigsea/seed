@@ -51,7 +51,7 @@ api = Api(app)
 mappings = {
     '/deployments': DeploymentListApi,
     '/deployments/<int:deployment_id>': DeploymentDetailApi,
-    '/images/<int:job_id>': DeploymentImageDetailApi,
+    '/images/<int:deployment_image_id>': DeploymentImageDetailApi,
     '/images': DeploymentImageListApi,
     '/targets/<int:job_id>/<deployment_target_id>': DeploymentTargetDetailApi,
     '/targets': DeploymentTargetListApi,
