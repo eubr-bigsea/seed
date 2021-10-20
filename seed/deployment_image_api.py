@@ -72,10 +72,10 @@ class DeploymentImageListApi(Resource):
         return_code = HTTPStatus.BAD_REQUEST
         
         if request.json is not None:
-            request_schema = DeploymentImageCreateRequestSchema()
-            response_schema = DeploymentImageItemResponseSchema()
-            deployment_image = request_schema.load(request.json)
             try:
+                request_schema = DeploymentImageCreateRequestSchema()
+                response_schema = DeploymentImageItemResponseSchema()
+                deployment_image = request_schema.load(request.json)
                 if log.isEnabledFor(logging.DEBUG):
                     log.debug(gettext('Adding %s'), self.human_name)
                 deployment_image = deployment_image
