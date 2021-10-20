@@ -6,6 +6,7 @@ try:
     import eventlet
 
     eventlet.monkey_patch(all=True, thread=False)
+    pass
 except:
     pass
 
@@ -34,7 +35,7 @@ from seed.models import db
 
 sqlalchemy_utils.i18n.get_locale = get_locale
 
-eventlet.monkey_patch(all=True)
+# eventlet.monkey_patch(all=True)
 app = Flask(__name__)
 
 babel = Babel(app)
