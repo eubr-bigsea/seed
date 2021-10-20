@@ -5,7 +5,7 @@
 try:
     import eventlet
 
-    eventlet.monkey_patch(all=True, thread=False)
+    # eventlet.monkey_patch(all=True, thread=False)
     pass
 except:
     pass
@@ -51,7 +51,7 @@ api = Api(app)
 mappings = {
     '/deployments': DeploymentListApi,
     '/deployments/<int:deployment_id>': DeploymentDetailApi,
-    '/images/<int:job_id>/<deployment_target_id>': DeploymentImageDetailApi,
+    '/images/<int:job_id>': DeploymentImageDetailApi,
     '/images': DeploymentImageListApi,
     '/targets/<int:job_id>/<deployment_target_id>': DeploymentTargetDetailApi,
     '/targets': DeploymentTargetListApi,
