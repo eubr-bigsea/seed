@@ -272,9 +272,10 @@ class DeploymentItemResponseSchema(BaseSchema):
     request_cpu = fields.Decimal(
         required=False,
         allow_none=True,
+        as_string=True,
         missing=0.5,
         default=0.5)
-    limit_cpu = fields.Decimal(required=False, allow_none=True)
+    limit_cpu = fields.Decimal(required=False, allow_none=True, as_string=True)
     extra_parameters = fields.String(required=False, allow_none=True)
     input_spec = fields.String(required=False, allow_none=True)
     output_spec = fields.String(required=False, allow_none=True)
