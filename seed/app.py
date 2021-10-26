@@ -35,6 +35,8 @@ from seed.client_api import ClientDetailApi
 from seed.client_api import ClientListApi
 from seed.deployment_log_api import DeploymentLogDetailApi
 from seed.deployment_log_api import DeploymentLogListApi
+from seed.deployment_metric_api import DeploymentMetricDetailApi
+from seed.deployment_metric_api import DeploymentMetricListApi
 
 from seed.models import db
 
@@ -64,6 +66,8 @@ mappings = {
     '/clients/<int:client_id>': ClientDetailApi,
     '/logs': DeploymentLogListApi,
     '/logs/<int:deployment_log_id>': DeploymentLogDetailApi,
+    '/metrics': DeploymentMetricListApi,
+    '/metrics/<int:deployment_metric_id>': DeploymentMetricDetailApi,
 }
 for path, view in list(mappings.items()):
     api.add_resource(view, path)

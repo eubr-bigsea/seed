@@ -439,6 +439,7 @@ class DeploymentMetricCreateRequestSchema(BaseSchema):
     enabled = fields.Boolean(required=True)
     user_id = fields.Integer(required=True)
     user_login = fields.String(required=True)
+    deployment_id = fields.Integer(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
