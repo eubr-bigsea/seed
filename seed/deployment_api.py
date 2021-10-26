@@ -76,6 +76,7 @@ class DeploymentListApi(Resource):
 
         if log.isEnabledFor(logging.DEBUG):
             log.debug(gettext('Listing %(name)s', name=self.human_name))
+
         return result
 
     @requires_auth

@@ -7,7 +7,6 @@ from marshmallow.validate import OneOf
 from flask_babel import gettext
 from seed.models import *
 
-
 def partial_schema_factory(schema_cls):
     schema = schema_cls(partial=True)
     for field_name, field in list(schema.fields.items()):
@@ -200,9 +199,10 @@ class DeploymentListResponseSchema(BaseSchema):
     request_cpu = fields.Decimal(
         required=False,
         allow_none=True,
+        as_string=True,
         missing=0.5,
         default=0.5)
-    limit_cpu = fields.Decimal(required=False, allow_none=True)
+    limit_cpu = fields.Decimal(required=False, allow_none=True, as_string=True)
     extra_parameters = fields.String(required=False, allow_none=True)
     input_spec = fields.String(required=False, allow_none=True)
     output_spec = fields.String(required=False, allow_none=True)
