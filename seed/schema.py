@@ -373,6 +373,7 @@ class DeploymentLogCreateRequestSchema(BaseSchema):
     status = fields.String(required=True,
                            validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
     log = fields.String(required=True)
+    deployment_id = fields.Integer(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load

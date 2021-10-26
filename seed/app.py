@@ -33,6 +33,9 @@ from seed.deployment_target_api import DeploymentTargetDetailApi
 from seed.deployment_target_api import DeploymentTargetListApi
 from seed.client_api import ClientDetailApi
 from seed.client_api import ClientListApi
+from seed.deployment_log_api import DeploymentLogDetailApi
+from seed.deployment_log_api import DeploymentLogListApi
+
 from seed.models import db
 
 sqlalchemy_utils.i18n.get_locale = get_locale
@@ -55,10 +58,12 @@ mappings = {
     '/deployments/<int:deployment_id>': DeploymentDetailApi,
     '/images/<int:deployment_image_id>': DeploymentImageDetailApi,
     '/images': DeploymentImageListApi,
-    '/targets/<deployment_target_id>': DeploymentTargetDetailApi,
+    '/targets/<int:deployment_target_id>': DeploymentTargetDetailApi,
     '/targets': DeploymentTargetListApi,
     '/clients': ClientListApi,
-    '/clients/<client_id>': ClientDetailApi,
+    '/clients/<int:client_id>': ClientDetailApi,
+    '/logs': DeploymentLogListApi,
+    '/logs/<int:deployment_log_id>': DeploymentLogDetailApi,
 }
 for path, view in list(mappings.items()):
     api.add_resource(view, path)

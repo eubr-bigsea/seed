@@ -29,7 +29,7 @@ class DeploymentLogListApi(Resource):
         else:
             only = ('id', ) if request.args.get(
                 'simple', 'false') == 'true' else None
-        deployment_logs = DeploymentLog.query.all()
+        deployment_logs = DeploymentLog.query
 
         page = request.args.get('page') or '1'
         if page is not None and page.isdigit():
