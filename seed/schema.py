@@ -50,6 +50,7 @@ class ClientCreateRequestSchema(BaseSchema):
     name = fields.String(required=True)
     enabled = fields.Boolean(required=True)
     token = fields.String(required=True)
+    deployment_id = fields.Integer(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -86,6 +87,7 @@ class ClientItemResponseSchema(BaseSchema):
     name = fields.String(required=True)
     enabled = fields.Boolean(required=True)
     token = fields.String(required=True)
+    deployment_id = fields.Integer(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
