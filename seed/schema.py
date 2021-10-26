@@ -495,7 +495,7 @@ class DeploymentTargetCreateRequestSchema(BaseSchema):
     authentication_info = fields.String(required=False, allow_none=True)
     enabled = fields.Boolean(required=True)
     target_type = fields.String(required=True,
-                                validate=[OneOf(list(DeploymentType.__dict__.keys()))])
+                                validate=[OneOf(list(DeploymentTypeTarget.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
 
     # noinspection PyUnresolvedReferences
@@ -516,7 +516,7 @@ class DeploymentTargetListResponseSchema(BaseSchema):
     description = fields.String(required=False, allow_none=True)
     enabled = fields.Boolean(required=True)
     target_type = fields.String(required=True,
-                                validate=[OneOf(list(DeploymentType.__dict__.keys()))])
+                                validate=[OneOf(list(DeploymentTypeTarget.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
 
     # noinspection PyUnresolvedReferences
@@ -539,7 +539,7 @@ class DeploymentTargetItemResponseSchema(BaseSchema):
     authentication_info = fields.String(required=False, allow_none=True)
     enabled = fields.Boolean(required=True)
     target_type = fields.String(required=True,
-                                validate=[OneOf(list(DeploymentType.__dict__.keys()))])
+                                validate=[OneOf(list(DeploymentTypeTarget.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
 
     # noinspection PyUnresolvedReferences

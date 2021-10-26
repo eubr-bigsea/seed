@@ -53,7 +53,7 @@ mappings = {
     '/deployments/<int:deployment_id>': DeploymentDetailApi,
     '/images/<int:deployment_image_id>': DeploymentImageDetailApi,
     '/images': DeploymentImageListApi,
-    '/targets/<int:job_id>/<deployment_target_id>': DeploymentTargetDetailApi,
+    '/targets/<deployment_target_id>': DeploymentTargetDetailApi,
     '/targets': DeploymentTargetListApi,
 }
 for path, view in list(mappings.items()):
