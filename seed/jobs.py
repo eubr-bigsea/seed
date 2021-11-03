@@ -10,8 +10,7 @@ from flask_babel import gettext as babel_gettext, force_locale
 from seed import rq
 from seed.app import app
 from seed.models import Deployment, DeploymentLog, DeploymentStatus, \
-    Traceability, db, AuditableType, MetricValue
-from tmalibrary.probes import *
+     db, MetricValue
 
 logging.config.fileConfig('logging_config.ini')
 logger = logging.getLogger(__name__)
@@ -27,9 +26,6 @@ def send_message(self, message_formated):
                          verify=False)
 
 
-Communication.send_message = send_message
-
-
 def get_config():
     config_file = os.environ.get('SEED_CONFIG')
     if config_file is None:
@@ -43,7 +39,7 @@ def get_config():
 
 def ctx_gettext(locale):
     def translate(msg, **variables):
-        with app.app.test_request_context():
+        with app.test_request_context():
             with force_locale(locale):
                 return babel_gettext(msg, **variables)
 
@@ -56,9 +52,6 @@ def metric_probe_updater(metric_data):
     try:
         """ A generic client for TMA """
         config = get_config()
-        tma_conf = config.get('services').get('tma', {})
-        wf_mapping = tma_conf.get('workflows', {})
-        description_mapping = tma_conf.get('descriptions', {})
 
         wf_id = metric_data.get('content', {}).get('workflow_id')
         if int(wf_id) not in wf_mapping:
@@ -73,7 +66,6 @@ def metric_probe_updater(metric_data):
         logger.info(
             'Sending message with probeId=%s, resourceId=%s, '
             'descriptionId=%s, messageId=%s',
-            tma_conf.get('probe_id'), wf_mapping.get(wf_id),
             description_mapping.get(description_id), wf_id)
 
         not_acceptable = next((x for x in metric_data['content']['values'] if
@@ -147,7 +139,6 @@ def auditing(auditing_data):
     for log in logs:
         workflow = log.pop('workflow')
         log['source_id'] = workflow['id']
-        log['source_type'] = AuditableType.WORKFLOW
         data_sources = log.pop('data_sources')
         log['created'] = datetime.datetime.strptime(log.pop('date')[:18],
                                                     "%Y-%m-%dT%H:%M:%S")
@@ -171,16 +162,14 @@ def auditing(auditing_data):
 
         for ds in data_sources:
             log['target_id'] = ds
-            log['target_type'] = AuditableType.DATA_SOURCE
-            trace = Traceability(**log)
             db.session.add(trace)
     db.session.commit()
 
 
 @rq.job("seed", ttl=60, result_ttl=3600)
 def deploy3():
-    import pdb
-    pdb.set_trace()
+    #import pdb
+    #pdb.set_trace()
     print((Deployment.query.all()))
 
 
