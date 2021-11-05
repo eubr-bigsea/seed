@@ -5,7 +5,8 @@
 try:
     import eventlet
 
-    eventlet.monkey_patch(all=True, thread=False)
+    # eventlet.monkey_patch(all=True, thread=False)
+    pass
 except:
     pass
 
@@ -34,7 +35,7 @@ from seed.models import db
 
 sqlalchemy_utils.i18n.get_locale = get_locale
 
-eventlet.monkey_patch(all=True)
+# eventlet.monkey_patch(all=True)
 app = Flask(__name__)
 
 babel = Babel(app)
@@ -50,7 +51,7 @@ api = Api(app)
 mappings = {
     '/deployments': DeploymentListApi,
     '/deployments/<int:deployment_id>': DeploymentDetailApi,
-    '/images/<int:job_id>/<deployment_target_id>': DeploymentImageDetailApi,
+    '/images/<int:deployment_image_id>': DeploymentImageDetailApi,
     '/images': DeploymentImageListApi,
     '/targets/<int:job_id>/<deployment_target_id>': DeploymentTargetDetailApi,
     '/targets': DeploymentTargetListApi,
