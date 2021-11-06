@@ -6,6 +6,7 @@ RUN apk add --no-cache \
       musl-dev \
       libffi-dev \
       openssl-dev \
+      g++ \
       postgresql-dev
 COPY requirements.txt /
 RUN pip install -r /requirements.txt
