@@ -27,7 +27,6 @@ from flask_restful import Api
 from seed import rq
 from seed.deployment_api import DeploymentDetailApi
 from seed.deployment_api import DeploymentListApi
-from seed.deployment_api import schedule_deployment_job
 from seed.deployment_image_api import DeploymentImageDetailApi
 from seed.deployment_image_api import DeploymentImageListApi
 from seed.deployment_target_api import DeploymentTargetDetailApi
@@ -59,7 +58,6 @@ api = Api(app)
 mappings = {
     '/deployments': DeploymentListApi,
     '/deployments/<int:deployment_id>': DeploymentDetailApi,
-    #'/deployments/job/': schedule_deployment_job,
     '/images/<int:deployment_image_id>': DeploymentImageDetailApi,
     '/images': DeploymentImageListApi,
     '/targets/<int:deployment_target_id>': DeploymentTargetDetailApi,

@@ -9,14 +9,18 @@ import yaml
 from flask_babel import gettext as babel_gettext, force_locale
 from seed import rq
 from seed.app import app
-from seed.models import Deployment, DeploymentLog, DeploymentStatus, \
+from seed.models import Deployment, DeploymentImage, DeploymentLog, DeploymentStatus, \
      db, MetricValue
+
+from seed.k8s_crud import create_deployment
+from kubernetes import client, config
 
 logging.config.fileConfig('logging_config.ini')
 logger = logging.getLogger(__name__)
 
 JOB_MODULE = True
 
+import pdb
 
 def send_message(self, message_formated):
     """ Monkey patches TMA send message """
@@ -191,11 +195,18 @@ def deploy(deployment_id, locale):
 
     gettext = ctx_gettext(locale)
     try:
-        deployment = Deployment.query.get(deployment_id)
-        if deployment:
+        deployment      = Deployment.query.get(deployment_id)
+        deploymentImage = DeploymentImage.query.get(deployment.image_id)
+
+        if deployment and deploymentImage:
             if logger.isEnabledFor(logging.INFO) or True:
                 logger.info('Running job for deployment %s', deployment_id)
 
+            #Kubernetes 
+            config.load_kube_config()
+            api_apps = client.AppsV1Api() 
+            create_deployment(deployment, deploymentImage, api_apps)
+                        
             log_message = gettext('Successfully deployed as a service')
             log_message_for_deployment(deployment_id, log_message,
                                        status=DeploymentStatus.DEPLOYED)

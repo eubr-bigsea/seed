@@ -89,7 +89,7 @@ class Client(db.Model):
         return '<Instance {}: {}>'.format(self.__class__, self.id)
 
 
-class Deployment(db.Model):
+class Deployment(db.Model): 
     """ Deployment """
     __tablename__ = 'deployment'
 

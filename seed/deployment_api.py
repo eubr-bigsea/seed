@@ -23,8 +23,6 @@ def schedule_deployment_job(deployment_id, locale):
     # q.enqueue_call(jobs.deploy, args=(deployment_id,), timeout=60,
     #                result_ttl=3600)
     jobs.deploy.queue(deployment_id, locale)
-    #jobs.deploy3.queue(deployment_id, locale)
-
 
 # endregion
 
@@ -103,7 +101,6 @@ class DeploymentListApi(Resource):
                 db.session.add(deployment)
                 db.session.flush()
                 schedule_deployment_job(deployment.id, 'pt')
-
                 db.session.commit()
                 result = response_schema.dump(deployment)
                 return_code = HTTPStatus.CREATED
