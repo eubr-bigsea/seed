@@ -197,19 +197,17 @@ def deploy(deployment_id, locale):
     try:
         deployment      = Deployment.query.get(deployment_id)
         deploymentImage = DeploymentImage.query.get(deployment.image_id)
-
         if deployment and deploymentImage:
             if logger.isEnabledFor(logging.INFO) or True:
                 logger.info('Running job for deployment %s', deployment_id)
-
             #Kubernetes 
             config.load_kube_config()
             api_apps = client.AppsV1Api() 
             create_deployment(deployment, deploymentImage, api_apps)
                         
-            log_message = gettext('Successfully deployed as a service')
-            log_message_for_deployment(deployment_id, log_message,
-                                       status=DeploymentStatus.DEPLOYED)
+            #log_message = gettext('Successfully deployed as a service')
+            #log_message_for_deployment(deployment_id, log_message,
+            #                           status=DeploymentStatus.DEPLOYED)
         else:
             log_message = gettext(
                 locale, 'Deployment information with id={} not found'.format(

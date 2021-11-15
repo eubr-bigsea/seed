@@ -48,3 +48,33 @@ def create_deployment(deployment, deploymentImage, api):
    ret = api.create_namespaced_deployment(
         body=deployment_obj, namespace=deployment_namespace
    )
+   
+
+   api_core=client.CoreV1Api()
+   create_service(api_core, deployment_name, deployment_namespace)
+
+def create_service(api, deployment_name, deployment_namespace): 
+  
+  service     = "my-service"
+  version     = "v1"
+  kind        = "Service"
+  port        = "5678" #expose service
+  target_port = "80" 
+  
+  body = client.V1Service(
+      api_version=version,
+      kind=kind,
+      metadata=client.V1ObjectMeta(
+          name=service
+      ),
+      spec=client.V1ServiceSpec(
+          selector={"app": deployment_name},
+          ports=[client.V1ServicePort(
+              name="port", 
+              port=int(port),
+              target_port=int(target_port)
+          )]
+      )
+  )
+
+  api.create_namespaced_service(namespace=deployment_namespace, body=body) 
