@@ -95,6 +95,7 @@ class Deployment(db.Model):
 
     # Fields
     id = Column(Integer, primary_key=True)
+    name = Column(String(100))
     description = Column(String(400))
     created = Column(DateTime,
                      default=func.now(), nullable=False)
@@ -126,9 +127,9 @@ class Deployment(db.Model):
     request_memory = Column(String(200),
                             default='128M', nullable=False)
     limit_memory = Column(String(200))
-    request_cpu = Column(Numeric(10, 2),
-                         default=0.5, nullable=False)
-    limit_cpu = Column(Numeric(10, 2))
+    request_cpu = Column(String(200),
+                         default='100M', nullable=False)
+    limit_cpu = Column(String(200))
     extra_parameters = Column(LONGTEXT)
     input_spec = Column(LONGTEXT)
     output_spec = Column(LONGTEXT)
@@ -251,6 +252,7 @@ class DeploymentTarget(db.Model):
     target_type = Column(Enum(*list(DeploymentTypeTarget.values()),
                               name='DeploymentTypeEnumType'), nullable=False)
     descriptor = Column(LONGTEXT)
+    namespace = Column(String(100), nullable=False)
 
     def __str__(self):
         return self.name

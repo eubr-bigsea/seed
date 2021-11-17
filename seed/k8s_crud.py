@@ -1,7 +1,8 @@
 from kubernetes import client, config
 #import pdb 
 
-def create_deployment(deployment, deploymentImage, api): 
+########### Deployment ###########
+def create_deployment(deployment, deploymentImage, deploymentTarget, api): 
   
    #Table: Pod 
    pod_name       = "nginx" 
@@ -9,20 +10,19 @@ def create_deployment(deployment, deploymentImage, api):
    container_port = "80"
 
    #Table: Deployment
-   deployment_name      = "nginx-deployment" 
+   deployment_name      = deployment.name 
    deployment_image     = deploymentImage.name 
    deployment_version   = "apps/v1" 
    deployment_kind      = "Deployment"
-   deployment_namespace = "default"
+   deployment_namespace = deploymentTarget.namespace
 
    container = client.V1Container(
         name=pod_name,
         image=deployment_image,
         ports=[client.V1ContainerPort(container_port=int(container_port))],
-        #Update with deployment table attributes
         resources=client.V1ResourceRequirements(
-            requests={"cpu": "100m", "memory": deployment.request_memory},
-            limits={"cpu": "500m", "memory": deployment.limit_memory},
+            requests={"cpu": deployment.request_cpu, "memory": deployment.request_memory},
+            limits={"cpu": deployment.limit_cpu, "memory": deployment.limit_memory},
        ),
    ) 
 
@@ -49,23 +49,39 @@ def create_deployment(deployment, deploymentImage, api):
         body=deployment_obj, namespace=deployment_namespace
    )
    
-
+   #Create service 
    api_core=client.CoreV1Api()
-   create_service(api_core, deployment_name, deployment_namespace)
+   create_service(deployment_name, deployment_namespace, api_core)
 
-def create_service(api, deployment_name, deployment_namespace): 
+def delete_deployment(deployment, deploymentTarget, api):
+
+   ret = api.delete_namespaced_deployment(
+        name=deployment.name,
+        namespace=deploymentTarget.namespace,
+        body=client.V1DeleteOptions(
+            propagation_policy="Foreground", grace_period_seconds=5
+        ),
+   )
   
-  service     = "my-service"
-  version     = "v1"
-  kind        = "Service"
-  port        = "5678" #expose service
-  target_port = "80" 
+   #Delete service 
+   api_core=client.CoreV1Api()
+   delete_service(deploymentTarget.namespace, api_core)
+
+########### Service ##########
+def create_service(deployment_name, deployment_namespace, api): 
+ 
+  #User interface parameters      
+  service_name = "my-service"
+  version      = "v1"
+  kind         = "Service"
+  port         = "5678" #expose service
+  target_port  = "80" 
   
   body = client.V1Service(
       api_version=version,
       kind=kind,
       metadata=client.V1ObjectMeta(
-          name=service
+          name=service_name
       ),
       spec=client.V1ServiceSpec(
           selector={"app": deployment_name},
@@ -78,3 +94,13 @@ def create_service(api, deployment_name, deployment_namespace):
   )
 
   api.create_namespaced_service(namespace=deployment_namespace, body=body) 
+
+def delete_service(deployment_namespace, api):
+
+   #User interface parameters      
+   service_name = "my-service"
+
+   ret = api.delete_namespaced_service(
+        name=service_name,
+        namespace=deployment_namespace,
+   )

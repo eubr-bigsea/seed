@@ -132,7 +132,8 @@ def main(is_main_module):
         # app.config.from_object(app.config)
         # app.register_blueprint(rq_dashboard.blueprint, url_prefix='/dashboard')
 
-        migrate = Migrate(app, db)
+        #migrate = Migrate(app, db)
+        migrate = Migrate(app, db, compare_type=True)
 
         port = int(config.get('port', 5000))
         logger.debug('Running in %s mode', config.get('environment'))

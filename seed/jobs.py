@@ -9,10 +9,11 @@ import yaml
 from flask_babel import gettext as babel_gettext, force_locale
 from seed import rq
 from seed.app import app
-from seed.models import Deployment, DeploymentImage, DeploymentLog, DeploymentStatus, \
-     db, MetricValue
+from seed.models import Deployment, DeploymentImage, DeploymentTarget, \
+        DeploymentLog, DeploymentStatus, db, MetricValue
 
-from seed.k8s_crud import create_deployment
+
+from seed.k8s_crud import create_deployment, delete_deployment
 from kubernetes import client, config
 
 logging.config.fileConfig('logging_config.ini')
@@ -195,19 +196,22 @@ def deploy(deployment_id, locale):
 
     gettext = ctx_gettext(locale)
     try:
-        deployment      = Deployment.query.get(deployment_id)
-        deploymentImage = DeploymentImage.query.get(deployment.image_id)
-        if deployment and deploymentImage:
+        deployment       = Deployment.query.get(deployment_id)
+        deploymentImage  = DeploymentImage.query.get(deployment.image_id)
+        deploymentTarget = DeploymentTarget.query.get(deployment.target_id)
+        
+        if deployment and deploymentImage and deploymentTarget:
             if logger.isEnabledFor(logging.INFO) or True:
                 logger.info('Running job for deployment %s', deployment_id)
+
             #Kubernetes 
             config.load_kube_config()
             api_apps = client.AppsV1Api() 
-            create_deployment(deployment, deploymentImage, api_apps)
+            create_deployment(deployment, deploymentImage, deploymentTarget, api_apps)
                         
-            #log_message = gettext('Successfully deployed as a service')
-            #log_message_for_deployment(deployment_id, log_message,
-            #                           status=DeploymentStatus.DEPLOYED)
+            log_message = gettext('Successfully deployed as a service')
+            log_message_for_deployment(deployment_id, log_message,
+                                       status=DeploymentStatus.DEPLOYED)
         else:
             log_message = gettext(
                 locale, 'Deployment information with id={} not found'.format(
@@ -223,6 +227,41 @@ def deploy(deployment_id, locale):
         log_message_for_deployment(deployment_id, log_message,
                                    status=DeploymentStatus.ERROR)
 
+@rq.job
+def undeploy(deployment_id, locale):
+    # noinspection PyBroadException
+
+    gettext = ctx_gettext(locale)
+    try:
+        deployment       = Deployment.query.get(deployment_id)
+        deploymentTarget = DeploymentTarget.query.get(deployment.target_id)
+        
+        if deployment and deploymentTarget:
+            if logger.isEnabledFor(logging.INFO) or True:
+                logger.info('Running job for deployment %s', deployment_id)
+
+            #Kubernetes 
+            config.load_kube_config()
+            api_apps = client.AppsV1Api() 
+            delete_deployment(deployment, deploymentTarget, api_apps)
+                        
+            log_message = gettext('Successfully deleted deployment.')
+            log_message_for_deployment(deployment_id, log_message,
+                                       status=DeploymentStatus.SUSPENDED)
+        else:
+            log_message = gettext(
+                locale, 'Deployment information with id={} not found'.format(
+                    deployment_id))
+
+            log_message_for_deployment(deployment_id, log_message,
+                                       status=DeploymentStatus.ERROR)
+
+    except Exception as e:
+        logger.exception('Running job for deployment %s')
+        log_message = gettext(
+            'Error in deployment {}: \n {}'.format(deployment_id, str(e)))
+        log_message_for_deployment(deployment_id, log_message,
+                                   status=DeploymentStatus.ERROR)
 
 def log_message_for_deployment(deployment_id, log_message, status):
     log = DeploymentLog(
