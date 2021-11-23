@@ -149,6 +149,8 @@ class DeploymentCreateRequestSchema(BaseSchema):
     extra_parameters = fields.String(required=False, allow_none=True)
     input_spec = fields.String(required=False, allow_none=True)
     output_spec = fields.String(required=False, allow_none=True)
+    port = fields.String(required=True)
+    assets = fields.String(required=True)
     target_id = fields.Integer(required=True)
     image_id = fields.Integer(required=True)
 
@@ -209,6 +211,8 @@ class DeploymentListResponseSchema(BaseSchema):
     extra_parameters = fields.String(required=False, allow_none=True)
     input_spec = fields.String(required=False, allow_none=True)
     output_spec = fields.String(required=False, allow_none=True)
+    port = fields.String(required=True)
+    assets = fields.String(required=True)
     target = fields.Nested(
         'seed.schema.DeploymentTargetListResponseSchema',
         required=True)
@@ -282,6 +286,8 @@ class DeploymentItemResponseSchema(BaseSchema):
     extra_parameters = fields.String(required=False, allow_none=True)
     input_spec = fields.String(required=False, allow_none=True)
     output_spec = fields.String(required=False, allow_none=True)
+    port = fields.String(required=True)
+    assets = fields.String(required=True)
     target = fields.Nested(
         'seed.schema.DeploymentTargetItemResponseSchema',
         required=True)
@@ -504,6 +510,8 @@ class DeploymentTargetCreateRequestSchema(BaseSchema):
                                 validate=[OneOf(list(DeploymentTypeTarget.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
     namespace = fields.String(required=True)
+    target_port = fields.String(required=True)
+    volume_path = fields.String(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -526,6 +534,8 @@ class DeploymentTargetListResponseSchema(BaseSchema):
                                 validate=[OneOf(list(DeploymentTypeTarget.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
     namespace = fields.String(required=True)
+    target_port = fields.String(required=True)
+    volume_path = fields.String(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -550,6 +560,8 @@ class DeploymentTargetItemResponseSchema(BaseSchema):
                                 validate=[OneOf(list(DeploymentTypeTarget.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
     namespace = fields.String(required=True)
+    target_port = fields.String(required=True)
+    volume_path = fields.String(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load

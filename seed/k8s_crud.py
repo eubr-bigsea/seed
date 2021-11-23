@@ -5,7 +5,7 @@ from kubernetes import client, config
 def create_deployment(deployment, deploymentImage, deploymentTarget, api): 
   
    #Table: Pod 
-   pod_name       = "nginx" 
+   pod_name       = deployment.name 
    pod_replicas   = deployment.replicas
    container_port = "80"
 
@@ -51,7 +51,9 @@ def create_deployment(deployment, deploymentImage, deploymentTarget, api):
    
    #Create service 
    api_core=client.CoreV1Api()
-   create_service(deployment_name, deployment_namespace, api_core)
+   port = deployment.port #expose service
+   target_port = deploymentTarget.target_port
+   create_service(deployment_name, deployment_namespace, port, target_port, api_core)
 
 def delete_deployment(deployment, deploymentTarget, api):
 
@@ -65,17 +67,18 @@ def delete_deployment(deployment, deploymentTarget, api):
   
    #Delete service 
    api_core=client.CoreV1Api()
-   delete_service(deploymentTarget.namespace, api_core)
+   service_name = deployment.name + "-service"
+   delete_service(service_name, deploymentTarget.namespace, api_core)
 
 ########### Service ##########
-def create_service(deployment_name, deployment_namespace, api): 
+def create_service(deployment_name, deployment_namespace, port, target_port, api): 
  
   #User interface parameters      
-  service_name = "my-service"
+  service_name = deployment_name + "-service"
   version      = "v1"
   kind         = "Service"
-  port         = "5678" #expose service
-  target_port  = "80" 
+  port         = port #expose service
+  target_port  = target_port 
   
   body = client.V1Service(
       api_version=version,
@@ -95,10 +98,7 @@ def create_service(deployment_name, deployment_namespace, api):
 
   api.create_namespaced_service(namespace=deployment_namespace, body=body) 
 
-def delete_service(deployment_namespace, api):
-
-   #User interface parameters      
-   service_name = "my-service"
+def delete_service(service_name, deployment_namespace, api):
 
    ret = api.delete_namespaced_service(
         name=service_name,

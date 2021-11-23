@@ -133,7 +133,9 @@ class Deployment(db.Model):
     extra_parameters = Column(LONGTEXT)
     input_spec = Column(LONGTEXT)
     output_spec = Column(LONGTEXT)
-
+    port = Column(String(10))
+    assets = Column(LONGTEXT)
+    
     # Associations
     target_id = Column(Integer,
                        ForeignKey("deployment_target.id",
@@ -253,6 +255,9 @@ class DeploymentTarget(db.Model):
                               name='DeploymentTypeEnumType'), nullable=False)
     descriptor = Column(LONGTEXT)
     namespace = Column(String(100), nullable=False)
+    target_port = Column(String(10), nullable=False)
+    volume_path = Column(LONGTEXT, nullable=False)
+
 
     def __str__(self):
         return self.name

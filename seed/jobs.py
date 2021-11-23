@@ -3,6 +3,7 @@ import datetime
 import json
 import logging.config
 import os
+#import pdb
 
 import requests
 import yaml
@@ -12,16 +13,14 @@ from seed.app import app
 from seed.models import Deployment, DeploymentImage, DeploymentTarget, \
         DeploymentLog, DeploymentStatus, db, MetricValue
 
-
 from seed.k8s_crud import create_deployment, delete_deployment
 from kubernetes import client, config
+from shutil import copyfile
 
 logging.config.fileConfig('logging_config.ini')
 logger = logging.getLogger(__name__)
 
 JOB_MODULE = True
-
-import pdb
 
 def send_message(self, message_formated):
     """ Monkey patches TMA send message """
@@ -208,7 +207,14 @@ def deploy(deployment_id, locale):
             config.load_kube_config()
             api_apps = client.AppsV1Api() 
             create_deployment(deployment, deploymentImage, deploymentTarget, api_apps)
-                        
+            
+            #Copy files to volume path 
+            volume_path = deploymentTarget.volume_path
+            files       = deployment.assets.split(',')
+            for f in files: 
+               dst = volume_path + os.path.basename(f) 
+               copyfile(f, dst) 
+
             log_message = gettext('Successfully deployed as a service')
             log_message_for_deployment(deployment_id, log_message,
                                        status=DeploymentStatus.DEPLOYED)
@@ -245,6 +251,13 @@ def undeploy(deployment_id, locale):
             api_apps = client.AppsV1Api() 
             delete_deployment(deployment, deploymentTarget, api_apps)
                         
+            #Delete files of the volume path 
+            volume_path = deploymentTarget.volume_path
+            files       = deployment.assets.split(',')
+            for f in files: 
+               absolute_patch_file = volume_path + os.path.basename(f) 
+               os.remove(absolute_patch_file) 
+
             log_message = gettext('Successfully deleted deployment.')
             log_message_for_deployment(deployment_id, log_message,
                                        status=DeploymentStatus.SUSPENDED)
@@ -263,6 +276,47 @@ def undeploy(deployment_id, locale):
         log_message_for_deployment(deployment_id, log_message,
                                    status=DeploymentStatus.ERROR)
 
+@rq.job
+def updeploy(deployment_id, locale):
+    # noinspection PyBroadException
+
+    gettext = ctx_gettext(locale)
+    try:
+        deployment       = Deployment.query.get(deployment_id)
+        deploymentTarget = DeploymentTarget.query.get(deployment.target_id)
+        
+        if deployment and deploymentTarget:
+            if logger.isEnabledFor(logging.INFO) or True:
+                logger.info('Running job for deployment %s', deployment_id)
+
+            log_message = gettext('Editing deployment.')
+            log_message_for_deployment(deployment_id, log_message,
+                                       status=DeploymentStatus.EDITING)
+
+            #Update files of the volume path 
+            volume_path = deploymentTarget.volume_path
+            files       = deployment.assets.split(',')
+            for f in files: 
+               dst = volume_path + os.path.basename(f) 
+               copyfile(f, dst) 
+
+            log_message = gettext('Successfully updated deployment.')
+            log_message_for_deployment(deployment_id, log_message,
+                                       status=DeploymentStatus.DEPLOYED)
+        else:
+            log_message = gettext(
+                locale, 'Deployment information with id={} not found'.format(
+                    deployment_id))
+
+            log_message_for_deployment(deployment_id, log_message,
+                                       status=DeploymentStatus.ERROR)
+
+    except Exception as e:
+        logger.exception('Running job for deployment %s')
+        log_message = gettext(
+            'Error in deployment {}: \n {}'.format(deployment_id, str(e)))
+        log_message_for_deployment(deployment_id, log_message,
+                                   status=DeploymentStatus.ERROR)
 def log_message_for_deployment(deployment_id, log_message, status):
     log = DeploymentLog(
         status=status, deployment_id=deployment_id, log=log_message)

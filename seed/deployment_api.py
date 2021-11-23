@@ -27,8 +27,8 @@ def schedule_deployment_job(deployment_id, locale, op):
       jobs.deploy.queue(deployment_id, locale)
     elif op == k8s_op.delete: 
       jobs.undeploy.queue(deployment_id, locale)
-    #elif op == k8s_op.update: 
-    #  jobs.ondeploy.queue(deployment_id, locale)
+    elif op == k8s_op.update: 
+      jobs.updeploy.queue(deployment_id, locale)
 
 # endregion
 
@@ -222,6 +222,8 @@ class DeploymentDetailApi(Resource):
                 db.session.commit()
 
                 if deployment is not None:
+                    schedule_deployment_job(deployment.id, 'pt', k8s_op.update)
+
                     return_code = HTTPStatus.OK
                     result = {
                         'status': 'OK',
