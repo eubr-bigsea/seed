@@ -18,7 +18,7 @@ db = SQLAlchemy()
 
 
 # noinspection PyClassHasNoInit
-class DeploymentType:
+class DeploymentTypeTarget:
     DOCKER = 'DOCKER'
     KUBERNETES = 'KUBERNETES'
     MARATHON = 'MARATHON'
@@ -26,7 +26,7 @@ class DeploymentType:
 
     @staticmethod
     def values():
-        return [n for n in list(DeploymentType.__dict__.keys())
+        return [n for n in list(DeploymentTypeTarget.__dict__.keys())
                 if n[0] != '_' and n != 'values']
 
 
@@ -248,7 +248,7 @@ class DeploymentTarget(db.Model):
     url = Column(String(500), nullable=False)
     authentication_info = Column(String(2500))
     enabled = Column(Boolean, nullable=False)
-    target_type = Column(Enum(*list(DeploymentType.values()),
+    target_type = Column(Enum(*list(DeploymentTypeTarget.values()),
                               name='DeploymentTypeEnumType'), nullable=False)
     descriptor = Column(LONGTEXT)
 

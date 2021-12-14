@@ -7,7 +7,6 @@ from marshmallow.validate import OneOf
 from flask_babel import gettext
 from seed.models import *
 
-
 def partial_schema_factory(schema_cls):
     schema = schema_cls(partial=True)
     for field_name, field in list(schema.fields.items()):
@@ -51,6 +50,7 @@ class ClientCreateRequestSchema(BaseSchema):
     name = fields.String(required=True)
     enabled = fields.Boolean(required=True)
     token = fields.String(required=True)
+    deployment_id = fields.Integer(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -87,6 +87,7 @@ class ClientItemResponseSchema(BaseSchema):
     name = fields.String(required=True)
     enabled = fields.Boolean(required=True)
     token = fields.String(required=True)
+    deployment_id = fields.Integer(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -200,9 +201,10 @@ class DeploymentListResponseSchema(BaseSchema):
     request_cpu = fields.Decimal(
         required=False,
         allow_none=True,
+        as_string=True,
         missing=0.5,
         default=0.5)
-    limit_cpu = fields.Decimal(required=False, allow_none=True)
+    limit_cpu = fields.Decimal(required=False, allow_none=True, as_string=True)
     extra_parameters = fields.String(required=False, allow_none=True)
     input_spec = fields.String(required=False, allow_none=True)
     output_spec = fields.String(required=False, allow_none=True)
@@ -272,9 +274,10 @@ class DeploymentItemResponseSchema(BaseSchema):
     request_cpu = fields.Decimal(
         required=False,
         allow_none=True,
+        as_string=True,
         missing=0.5,
         default=0.5)
-    limit_cpu = fields.Decimal(required=False, allow_none=True)
+    limit_cpu = fields.Decimal(required=False, allow_none=True, as_string=True)
     extra_parameters = fields.String(required=False, allow_none=True)
     input_spec = fields.String(required=False, allow_none=True)
     output_spec = fields.String(required=False, allow_none=True)
@@ -370,6 +373,7 @@ class DeploymentLogCreateRequestSchema(BaseSchema):
     status = fields.String(required=True,
                            validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
     log = fields.String(required=True)
+    deployment_id = fields.Integer(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -435,6 +439,7 @@ class DeploymentMetricCreateRequestSchema(BaseSchema):
     enabled = fields.Boolean(required=True)
     user_id = fields.Integer(required=True)
     user_login = fields.String(required=True)
+    deployment_id = fields.Integer(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -495,7 +500,7 @@ class DeploymentTargetCreateRequestSchema(BaseSchema):
     authentication_info = fields.String(required=False, allow_none=True)
     enabled = fields.Boolean(required=True)
     target_type = fields.String(required=True,
-                                validate=[OneOf(list(DeploymentType.__dict__.keys()))])
+                                validate=[OneOf(list(DeploymentTypeTarget.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
 
     # noinspection PyUnresolvedReferences
@@ -516,7 +521,7 @@ class DeploymentTargetListResponseSchema(BaseSchema):
     description = fields.String(required=False, allow_none=True)
     enabled = fields.Boolean(required=True)
     target_type = fields.String(required=True,
-                                validate=[OneOf(list(DeploymentType.__dict__.keys()))])
+                                validate=[OneOf(list(DeploymentTypeTarget.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
 
     # noinspection PyUnresolvedReferences
@@ -539,7 +544,7 @@ class DeploymentTargetItemResponseSchema(BaseSchema):
     authentication_info = fields.String(required=False, allow_none=True)
     enabled = fields.Boolean(required=True)
     target_type = fields.String(required=True,
-                                validate=[OneOf(list(DeploymentType.__dict__.keys()))])
+                                validate=[OneOf(list(DeploymentTypeTarget.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
 
     # noinspection PyUnresolvedReferences
