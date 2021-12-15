@@ -1,6 +1,9 @@
 import math
 import logging
 
+from rq import Queue
+from redis import Redis
+
 from seed.app_auth import requires_auth, requires_permission
 from flask import request, current_app, g as flask_globals
 from flask_restful import Resource
@@ -8,34 +11,27 @@ from sqlalchemy import or_
 from http import HTTPStatus
 from marshmallow.exceptions import ValidationError
 
+from seed import jobs
 from seed.schema import *
 from seed.util import translate_validation
 from flask_babel import gettext
 from enum import Enum 
+from urllib.parse import urlparse
+from typing import Callable
 
 log = logging.getLogger(__name__)
 # region Protected
 
-def schedule_deployment_job(deployment_id, locale):
-    from seed import jobs
+def schedule_deployment_job(deployment_id: int, locale: str, action: Callable):
     # config = current_app.config['SEED_CONFIG']
-    # q = Queue(connection=Redis(config['servers']['redis_url']))
-    # q.enqueue_call(jobs.deploy, args=(deployment_id,), timeout=60,
+    # parsed = urlparse(config['servers']['redis_url'])
+    # q = Queue(connection=Redis(host=parsed.hostname, port=parsed.port, 
+    # db=parsed.path[1:]))
+    # q.enqueue_call(action, args=(deployment_id, locale), timeout=60,
     #                result_ttl=3600)
-    if op == k8s_op.create: 
-      jobs.deploy.queue(deployment_id, locale)
-    elif op == k8s_op.delete: 
-      jobs.undeploy.queue(deployment_id, locale)
-    elif op == k8s_op.update: 
-      jobs.updeploy.queue(deployment_id, locale)
+    action.queue(deployment_id, locale, timeout=60, result_ttl=3600)
 
 # endregion
-
-class k8s_op(Enum): 
-    create = 0 
-    read   = 1 
-    update = 2 
-    delete = 3
 
 class DeploymentListApi(Resource):
     """ REST API for listing class Deployment """
@@ -57,9 +53,10 @@ class DeploymentListApi(Resource):
         else:
             deployments = Deployment.query
 
-        sort = request.args.get('sort', 'description')
-        if sort not in ['description']:
-            sort = 'description'
+        sort = request.args.get('sort', 'name')
+        if sort not in ['id', 'name', 'type', 'created', 'updated', 
+            'current_status']:
+            sort = 'name'
         sort_option = getattr(Deployment, sort)
         if request.args.get('asc', 'true') == 'false':
             sort_option = sort_option.desc()
@@ -101,6 +98,7 @@ class DeploymentListApi(Resource):
             request.json['user_id'] = flask_globals.user.id
             request.json['user_login'] = flask_globals.user.login
             request.json['user_name'] = flask_globals.user.name
+            deploy = request.json.pop('deploy', 'False') in ('True', 'true', 1)
 
             request_schema = DeploymentCreateRequestSchema()
             response_schema = DeploymentItemResponseSchema()
@@ -111,7 +109,9 @@ class DeploymentListApi(Resource):
                 deployment = deployment
                 db.session.add(deployment)
                 db.session.flush()
-                schedule_deployment_job(deployment.id, 'pt', k8s_op.create)
+                if deploy:
+                    schedule_deployment_job(deployment.id, 
+                        flask_globals.user.locale, jobs.deploy)
                 db.session.commit()
                 result = response_schema.dump(deployment)
                 return_code = HTTPStatus.CREATED
@@ -179,7 +179,8 @@ class DeploymentDetailApi(Resource):
                 #db.session.delete(deployment)
                 deployment.current_status = DeploymentStatus.SUSPENDED
                 db.session.flush()
-                schedule_deployment_job(deployment.id, 'pt', k8s_op.delete)
+                schedule_deployment_job(deployment.id, 
+                    flask_globals.user.locale, jobs.undeploy)
                 db.session.commit()
                 result = {
                     'status': 'OK',
@@ -211,6 +212,7 @@ class DeploymentDetailApi(Resource):
             log.debug(gettext('Updating %s (id=%s)'), self.human_name,
                       deployment_id)
         if request.json:
+            deploy = request.json.pop('deploy', 'False') in ('True', 'true', 1)
             request_schema = partial_schema_factory(
                 DeploymentCreateRequestSchema)
             # Ignore missing fields to allow partial updates
@@ -222,7 +224,10 @@ class DeploymentDetailApi(Resource):
                 db.session.commit()
 
                 if deployment is not None:
-                    schedule_deployment_job(deployment.id, 'pt', k8s_op.update)
+                    if deploy:
+                        schedule_deployment_job(deployment.id, 
+                            flask_globals.user.locale, 
+                            jobs.updeploy)
 
                     return_code = HTTPStatus.OK
                     result = {

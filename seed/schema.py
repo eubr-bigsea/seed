@@ -159,6 +159,7 @@ class DeploymentCreateRequestSchema(BaseSchema):
     input_spec = fields.String(required=False, allow_none=True)
     output_spec = fields.String(required=False, allow_none=True)
     assets = fields.String(required=False, allow_none=True)
+    deploy = fields.Boolean(default=False, allow_none=True)
     target_id = fields.Integer(required=True)
     image_id = fields.Integer(required=True)
 

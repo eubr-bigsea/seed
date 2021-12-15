@@ -3,7 +3,7 @@
 # noinspection PyBroadException
 
 try:
-    import eventlet
+    # import eventlet
 
     # eventlet.monkey_patch(all=True, thread=False)
     pass
@@ -48,41 +48,47 @@ class JsonEncoder(JSONEncoder):
             return float(obj)
         return JSONEncoder.default(self, obj)
 
-sqlalchemy_utils.i18n.get_locale = get_locale
-
-# eventlet.monkey_patch(all=True)
-app = Flask(__name__)
-
-app.json_encoder = JsonEncoder
-
-babel = Babel(app)
-
-logging.config.fileConfig('logging_config.ini')
-
-app.secret_key = 'l3m0n4d1'
-
-# CORS
-CORS(app, resources={r"/*": {"origins": "*"}})
-api = Api(app)
-
-mappings = {
-    '/deployments': DeploymentListApi,
-    '/deployments/<int:deployment_id>': DeploymentDetailApi,
-    '/images/<int:deployment_image_id>': DeploymentImageDetailApi,
-    '/images': DeploymentImageListApi,
-    '/targets/<int:deployment_target_id>': DeploymentTargetDetailApi,
-    '/targets': DeploymentTargetListApi,
-    '/clients': ClientListApi,
-    '/clients/<int:client_id>': ClientDetailApi,
-    '/logs': DeploymentLogListApi,
-    '/logs/<int:deployment_log_id>': DeploymentLogDetailApi,
-    '/metrics': DeploymentMetricListApi,
-    '/metrics/<int:deployment_metric_id>': DeploymentMetricDetailApi,
-}
-for path, view in list(mappings.items()):
-    api.add_resource(view, path)
-
-
+def create_babel(app):
+    return Babel(app)
+    
+def create_app():
+    sqlalchemy_utils.i18n.get_locale = get_locale
+    
+    # eventlet.monkey_patch(all=True)
+    app = Flask(__name__)
+    
+    app.json_encoder = JsonEncoder
+    
+    babel = create_babel(app)
+    
+    logging.config.fileConfig('logging_config.ini')
+    
+    app.secret_key = 'l3m0n4d1'
+    
+    # CORS
+    CORS(app, resources={r"/*": {"origins": "*"}})
+    api = Api(app)
+    
+    mappings = {
+        '/deployments': DeploymentListApi,
+        '/deployments/<int:deployment_id>': DeploymentDetailApi,
+        '/images/<int:deployment_image_id>': DeploymentImageDetailApi,
+        '/images': DeploymentImageListApi,
+        '/targets/<int:deployment_target_id>': DeploymentTargetDetailApi,
+        '/targets': DeploymentTargetListApi,
+        '/clients': ClientListApi,
+        '/clients/<int:client_id>': ClientDetailApi,
+        '/logs': DeploymentLogListApi,
+        '/logs/<int:deployment_log_id>': DeploymentLogDetailApi,
+        '/metrics': DeploymentMetricListApi,
+        '/metrics/<int:deployment_metric_id>': DeploymentMetricDetailApi,
+    }
+    for path, view in list(mappings.items()):
+        api.add_resource(view, path)
+    return app
+    
+app = create_app()
+babel = create_babel(app)
 @babel.localeselector
 def get_locale():
     return request.args.get('lang') or \
@@ -147,7 +153,6 @@ def main(is_main_module):
 
         port = int(config.get('port', 5000))
         logger.debug('Running in %s mode', config.get('environment'))
-
         if is_main_module:
             if config.get('environment', 'dev') == 'dev':
                 app.run(debug=True, port=port)
