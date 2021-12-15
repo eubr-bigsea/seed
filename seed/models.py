@@ -89,13 +89,13 @@ class Client(db.Model):
         return '<Instance {}: {}>'.format(self.__class__, self.id)
 
 
-class Deployment(db.Model): 
+class Deployment(db.Model):
     """ Deployment """
     __tablename__ = 'deployment'
 
     # Fields
     id = Column(Integer, primary_key=True)
-    name = Column(String(100))
+    name = Column(String(100), nullable=False)
     description = Column(String(400))
     created = Column(DateTime,
                      default=func.now(), nullable=False)
@@ -129,15 +129,16 @@ class Deployment(db.Model):
     request_memory = Column(String(200),
                             default='128M', nullable=False)
     limit_memory = Column(String(200))
-    request_cpu = Column(String(200),
-                         default='100M', nullable=False)
-    limit_cpu = Column(String(200))
+    request_cpu = Column(String(20),
+                         default='500m')
+    limit_cpu = Column(String(20),
+                       default='1000m')
+    port = Column(Integer)
     extra_parameters = Column(LONGTEXT)
     input_spec = Column(LONGTEXT)
     output_spec = Column(LONGTEXT)
-    port = Column(String(10))
     assets = Column(LONGTEXT)
-    
+
     # Associations
     target_id = Column(Integer,
                        ForeignKey("deployment_target.id",
@@ -159,7 +160,7 @@ class Deployment(db.Model):
         foreign_keys=[image_id])
 
     def __str__(self):
-        return self.description
+        return self.name
 
     def __repr__(self):
         return '<Instance {}: {}>'.format(self.__class__, self.id)
@@ -250,6 +251,8 @@ class DeploymentTarget(db.Model):
     # Fields
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
+    namespace = Column(String(100), nullable=False)
+    volume_path = Column(String(250), nullable=False)
     description = Column(String(400))
     url = Column(String(500), nullable=False)
     authentication_info = Column(String(2500))
@@ -257,10 +260,6 @@ class DeploymentTarget(db.Model):
     target_type = Column(Enum(*list(DeploymentTargetType.values()),
                               name='DeploymentTargetTypeEnumType'), nullable=False)
     descriptor = Column(LONGTEXT)
-    namespace = Column(String(100), nullable=False)
-    target_port = Column(String(10), nullable=False)
-    volume_path = Column(LONGTEXT, nullable=False)
-
 
     def __str__(self):
         return self.name

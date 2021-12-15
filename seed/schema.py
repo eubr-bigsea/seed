@@ -7,6 +7,7 @@ from marshmallow.validate import OneOf
 from flask_babel import gettext
 from seed.models import *
 
+
 def partial_schema_factory(schema_cls):
     schema = schema_cls(partial=True)
     for field_name, field in list(schema.fields.items()):
@@ -50,7 +51,6 @@ class ClientCreateRequestSchema(BaseSchema):
     name = fields.String(required=True)
     enabled = fields.Boolean(required=True)
     token = fields.String(required=True)
-    deployment_id = fields.Integer(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -87,7 +87,6 @@ class ClientItemResponseSchema(BaseSchema):
     name = fields.String(required=True)
     enabled = fields.Boolean(required=True)
     token = fields.String(required=True)
-    deployment_id = fields.Integer(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -148,14 +147,18 @@ class DeploymentCreateRequestSchema(BaseSchema):
     request_cpu = fields.String(
         required=False,
         allow_none=True,
-        missing='100M',
-        default='100M')
-    limit_cpu = fields.String(required=False, allow_none=True)
+        missing='500m',
+        default='500m')
+    limit_cpu = fields.String(
+        required=False,
+        allow_none=True,
+        missing='1000m',
+        default='1000m')
+    port = fields.Integer(required=False, allow_none=True)
     extra_parameters = fields.String(required=False, allow_none=True)
     input_spec = fields.String(required=False, allow_none=True)
     output_spec = fields.String(required=False, allow_none=True)
-    port = fields.String(required=True)
-    assets = fields.String(required=True)
+    assets = fields.String(required=False, allow_none=True)
     target_id = fields.Integer(required=True)
     image_id = fields.Integer(required=True)
 
@@ -214,14 +217,18 @@ class DeploymentListResponseSchema(BaseSchema):
     request_cpu = fields.String(
         required=False,
         allow_none=True,
-        missing='100M',
-        default='100M')
-    limit_cpu = fields.String(required=False, allow_none=True)
+        missing='500m',
+        default='500m')
+    limit_cpu = fields.String(
+        required=False,
+        allow_none=True,
+        missing='1000m',
+        default='1000m')
+    port = fields.Integer(required=False, allow_none=True)
     extra_parameters = fields.String(required=False, allow_none=True)
     input_spec = fields.String(required=False, allow_none=True)
     output_spec = fields.String(required=False, allow_none=True)
-    port = fields.String(required=True)
-    assets = fields.String(required=True)
+    assets = fields.String(required=False, allow_none=True)
     target = fields.Nested(
         'seed.schema.DeploymentTargetListResponseSchema',
         required=True)
@@ -290,14 +297,18 @@ class DeploymentItemResponseSchema(BaseSchema):
     request_cpu = fields.String(
         required=False,
         allow_none=True,
-        missing='100M',
-        default='100M')    
-    limit_cpu = fields.String(required=False, allow_none=True)
+        missing='500m',
+        default='500m')
+    limit_cpu = fields.String(
+        required=False,
+        allow_none=True,
+        missing='1000m',
+        default='1000m')
+    port = fields.Integer(required=False, allow_none=True)
     extra_parameters = fields.String(required=False, allow_none=True)
     input_spec = fields.String(required=False, allow_none=True)
     output_spec = fields.String(required=False, allow_none=True)
-    port = fields.String(required=True)
-    assets = fields.String(required=True)
+    assets = fields.String(required=False, allow_none=True)
     target = fields.Nested(
         'seed.schema.DeploymentTargetItemResponseSchema',
         required=True)
@@ -393,7 +404,6 @@ class DeploymentLogCreateRequestSchema(BaseSchema):
     status = fields.String(required=True,
                            validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
     log = fields.String(required=True)
-    deployment_id = fields.Integer(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -459,7 +469,6 @@ class DeploymentMetricCreateRequestSchema(BaseSchema):
     enabled = fields.Boolean(required=True)
     user_id = fields.Integer(required=True)
     user_login = fields.String(required=True)
-    deployment_id = fields.Integer(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -515,6 +524,8 @@ class DeploymentMetricItemResponseSchema(BaseSchema):
 class DeploymentTargetCreateRequestSchema(BaseSchema):
     """ JSON serialization schema """
     name = fields.String(required=True)
+    namespace = fields.String(required=True)
+    volume_path = fields.String(required=True)
     description = fields.String(required=False, allow_none=True)
     url = fields.String(required=True)
     authentication_info = fields.String(required=False, allow_none=True)
@@ -522,9 +533,6 @@ class DeploymentTargetCreateRequestSchema(BaseSchema):
     target_type = fields.String(required=True,
                                 validate=[OneOf(list(DeploymentTargetType.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
-    namespace = fields.String(required=True)
-    target_port = fields.String(required=True)
-    volume_path = fields.String(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -541,14 +549,13 @@ class DeploymentTargetListResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
     name = fields.String(required=True)
+    namespace = fields.String(required=True)
+    volume_path = fields.String(required=True)
     description = fields.String(required=False, allow_none=True)
     enabled = fields.Boolean(required=True)
     target_type = fields.String(required=True,
                                 validate=[OneOf(list(DeploymentTargetType.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
-    namespace = fields.String(required=True)
-    target_port = fields.String(required=True)
-    volume_path = fields.String(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -565,6 +572,8 @@ class DeploymentTargetItemResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
     name = fields.String(required=True)
+    namespace = fields.String(required=True)
+    volume_path = fields.String(required=True)
     description = fields.String(required=False, allow_none=True)
     url = fields.String(required=True)
     authentication_info = fields.String(required=False, allow_none=True)
@@ -572,9 +581,6 @@ class DeploymentTargetItemResponseSchema(BaseSchema):
     target_type = fields.String(required=True,
                                 validate=[OneOf(list(DeploymentTargetType.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
-    namespace = fields.String(required=True)
-    target_port = fields.String(required=True)
-    volume_path = fields.String(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
