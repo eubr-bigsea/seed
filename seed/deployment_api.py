@@ -12,20 +12,31 @@ from marshmallow.exceptions import ValidationError
 from seed.schema import *
 from seed.util import translate_validation
 from flask_babel import gettext
+from enum import Enum 
 
 log = logging.getLogger(__name__)
 # region Protected
 
-def schedule_deployment_job(deployment_id, locale):
+def schedule_deployment_job(deployment_id, locale, op):
     from seed import jobs
     # config = current_app.config['SEED_CONFIG']
     # q = Queue(connection=Redis(config['servers']['redis_url']))
     # q.enqueue_call(jobs.deploy, args=(deployment_id,), timeout=60,
     #                result_ttl=3600)
-    jobs.deploy.queue(deployment_id, locale)
-
+    if op == k8s_op.create: 
+      jobs.deploy.queue(deployment_id, locale)
+    elif op == k8s_op.delete: 
+      jobs.undeploy.queue(deployment_id, locale)
+    elif op == k8s_op.update: 
+      jobs.updeploy.queue(deployment_id, locale)
 
 # endregion
+
+class k8s_op(Enum): 
+    create = 0 
+    read   = 1 
+    update = 2 
+    delete = 3
 
 class DeploymentListApi(Resource):
     """ REST API for listing class Deployment """
@@ -100,6 +111,8 @@ class DeploymentListApi(Resource):
                     log.debug(gettext('Adding %s'), self.human_name)
                 deployment = deployment
                 db.session.add(deployment)
+                db.session.flush()
+                schedule_deployment_job(deployment.id, 'pt', k8s_op.create)
                 db.session.commit()
                 result = response_schema.dump(deployment)
                 return_code = HTTPStatus.CREATED
@@ -163,7 +176,10 @@ class DeploymentDetailApi(Resource):
         deployment = Deployment.query.get(deployment_id)
         if deployment is not None:
             try:
-                db.session.delete(deployment)
+                #db.session.delete(deployment)
+                deployment.current_status = DeploymentStatus.SUSPENDED
+                db.session.flush()
+                schedule_deployment_job(deployment.id, 'pt', k8s_op.delete)
                 db.session.commit()
                 result = {
                     'status': 'OK',
@@ -206,6 +222,8 @@ class DeploymentDetailApi(Resource):
                 db.session.commit()
 
                 if deployment is not None:
+                    schedule_deployment_job(deployment.id, 'pt', k8s_op.update)
+
                     return_code = HTTPStatus.OK
                     result = {
                         'status': 'OK',

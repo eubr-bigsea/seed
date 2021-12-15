@@ -102,6 +102,7 @@ class ClientItemResponseSchema(BaseSchema):
 
 class DeploymentCreateRequestSchema(BaseSchema):
     """ JSON serialization schema """
+    name = fields.String(required=True)
     description = fields.String(required=False, allow_none=True)
     created = fields.DateTime(required=False, allow_none=True)
     updated = fields.DateTime(required=False, allow_none=True)
@@ -139,15 +140,17 @@ class DeploymentCreateRequestSchema(BaseSchema):
         missing='128M',
         default='128M')
     limit_memory = fields.String(required=False, allow_none=True)
-    request_cpu = fields.Decimal(
+    request_cpu = fields.String(
         required=False,
         allow_none=True,
-        missing=0.5,
-        default=0.5)
-    limit_cpu = fields.Decimal(required=False, allow_none=True)
+        missing='100M',
+        default='100M')
+    limit_cpu = fields.String(required=False, allow_none=True)
     extra_parameters = fields.String(required=False, allow_none=True)
     input_spec = fields.String(required=False, allow_none=True)
     output_spec = fields.String(required=False, allow_none=True)
+    port = fields.String(required=True)
+    assets = fields.String(required=True)
     target_id = fields.Integer(required=True)
     image_id = fields.Integer(required=True)
 
@@ -165,6 +168,7 @@ class DeploymentCreateRequestSchema(BaseSchema):
 class DeploymentListResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
+    name = fields.String(required=True)
     description = fields.String(required=False, allow_none=True)
     created = fields.DateTime(required=False, allow_none=True)
     updated = fields.DateTime(required=False, allow_none=True)
@@ -198,16 +202,17 @@ class DeploymentListResponseSchema(BaseSchema):
         missing='128M',
         default='128M')
     limit_memory = fields.String(required=False, allow_none=True)
-    request_cpu = fields.Decimal(
+    request_cpu = fields.String(
         required=False,
         allow_none=True,
-        as_string=True,
-        missing=0.5,
-        default=0.5)
-    limit_cpu = fields.Decimal(required=False, allow_none=True, as_string=True)
+        missing='100M',
+        default='100M')
+    limit_cpu = fields.String(required=False, allow_none=True)
     extra_parameters = fields.String(required=False, allow_none=True)
     input_spec = fields.String(required=False, allow_none=True)
     output_spec = fields.String(required=False, allow_none=True)
+    port = fields.String(required=True)
+    assets = fields.String(required=True)
     target = fields.Nested(
         'seed.schema.DeploymentTargetListResponseSchema',
         required=True)
@@ -239,6 +244,7 @@ class DeploymentListResponseSchema(BaseSchema):
 class DeploymentItemResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
+    name = fields.String(required=True)
     description = fields.String(required=False, allow_none=True)
     created = fields.DateTime(required=False, allow_none=True)
     updated = fields.DateTime(required=False, allow_none=True)
@@ -271,16 +277,17 @@ class DeploymentItemResponseSchema(BaseSchema):
         missing='128M',
         default='128M')
     limit_memory = fields.String(required=False, allow_none=True)
-    request_cpu = fields.Decimal(
+    request_cpu = fields.String(
         required=False,
         allow_none=True,
-        as_string=True,
-        missing=0.5,
-        default=0.5)
-    limit_cpu = fields.Decimal(required=False, allow_none=True, as_string=True)
+        missing='100M',
+        default='100M')    
+    limit_cpu = fields.String(required=False, allow_none=True)
     extra_parameters = fields.String(required=False, allow_none=True)
     input_spec = fields.String(required=False, allow_none=True)
     output_spec = fields.String(required=False, allow_none=True)
+    port = fields.String(required=True)
+    assets = fields.String(required=True)
     target = fields.Nested(
         'seed.schema.DeploymentTargetItemResponseSchema',
         required=True)
@@ -502,6 +509,9 @@ class DeploymentTargetCreateRequestSchema(BaseSchema):
     target_type = fields.String(required=True,
                                 validate=[OneOf(list(DeploymentTypeTarget.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
+    namespace = fields.String(required=True)
+    target_port = fields.String(required=True)
+    volume_path = fields.String(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -523,6 +533,9 @@ class DeploymentTargetListResponseSchema(BaseSchema):
     target_type = fields.String(required=True,
                                 validate=[OneOf(list(DeploymentTypeTarget.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
+    namespace = fields.String(required=True)
+    target_port = fields.String(required=True)
+    volume_path = fields.String(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -546,6 +559,9 @@ class DeploymentTargetItemResponseSchema(BaseSchema):
     target_type = fields.String(required=True,
                                 validate=[OneOf(list(DeploymentTypeTarget.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
+    namespace = fields.String(required=True)
+    target_port = fields.String(required=True)
+    volume_path = fields.String(required=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
