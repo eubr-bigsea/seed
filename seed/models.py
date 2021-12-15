@@ -18,7 +18,7 @@ db = SQLAlchemy()
 
 
 # noinspection PyClassHasNoInit
-class DeploymentTypeTarget:
+class DeploymentTargetType:
     DOCKER = 'DOCKER'
     KUBERNETES = 'KUBERNETES'
     MARATHON = 'MARATHON'
@@ -26,7 +26,7 @@ class DeploymentTypeTarget:
 
     @staticmethod
     def values():
-        return [n for n in list(DeploymentTypeTarget.__dict__.keys())
+        return [n for n in list(DeploymentTargetType.__dict__.keys())
                 if n[0] != '_' and n != 'values']
 
 
@@ -103,10 +103,12 @@ class Deployment(db.Model):
                      default=func.now(), nullable=False,
                      onupdate=datetime.datetime.utcnow)
     command = Column(String(5000))
-    workflow_name = Column(String(200), nullable=False)
+    workflow_name = Column(String(200),
+                           default='')
     workflow_id = Column(Integer)
     job_id = Column(Integer)
     model_id = Column(Integer)
+    model_name = Column(String(200), nullable=False)
     user_id = Column(Integer, nullable=False)
     user_login = Column(String(100), nullable=False)
     user_name = Column(String(100), nullable=False)
@@ -169,12 +171,13 @@ class DeploymentImage(db.Model):
 
     # Fields
     id = Column(Integer, primary_key=True)
+    description = Column(String(200), nullable=False)
     name = Column(String(100), nullable=False)
     tag = Column(String(100), nullable=False)
     enabled = Column(Boolean, nullable=False)
 
     def __str__(self):
-        return self.name
+        return self.description
 
     def __repr__(self):
         return '<Instance {}: {}>'.format(self.__class__, self.id)
@@ -251,8 +254,8 @@ class DeploymentTarget(db.Model):
     url = Column(String(500), nullable=False)
     authentication_info = Column(String(2500))
     enabled = Column(Boolean, nullable=False)
-    target_type = Column(Enum(*list(DeploymentTypeTarget.values()),
-                              name='DeploymentTypeEnumType'), nullable=False)
+    target_type = Column(Enum(*list(DeploymentTargetType.values()),
+                              name='DeploymentTargetTypeEnumType'), nullable=False)
     descriptor = Column(LONGTEXT)
     namespace = Column(String(100), nullable=False)
     target_port = Column(String(10), nullable=False)

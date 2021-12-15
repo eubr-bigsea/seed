@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-}
 import math
 import logging
 
@@ -17,7 +16,7 @@ from enum import Enum
 log = logging.getLogger(__name__)
 # region Protected
 
-def schedule_deployment_job(deployment_id, locale, op):
+def schedule_deployment_job(deployment_id, locale):
     from seed import jobs
     # config = current_app.config['SEED_CONFIG']
     # q = Queue(connection=Redis(config['servers']['redis_url']))
@@ -95,7 +94,7 @@ class DeploymentListApi(Resource):
         result = {'status': 'ERROR',
                   'message': gettext("Missing json in the request body")}
         return_code = HTTPStatus.BAD_REQUEST
-        
+
         if request.json is not None:
             request.json['created'] = datetime.datetime.utcnow().isoformat()
             request.json['updated'] = request.json['created']
@@ -105,8 +104,8 @@ class DeploymentListApi(Resource):
 
             request_schema = DeploymentCreateRequestSchema()
             response_schema = DeploymentItemResponseSchema()
-            deployment = request_schema.load(request.json)
             try:
+                deployment = request_schema.load(request.json)
                 if log.isEnabledFor(logging.DEBUG):
                     log.debug(gettext('Adding %s'), self.human_name)
                 deployment = deployment
@@ -117,11 +116,11 @@ class DeploymentListApi(Resource):
                 result = response_schema.dump(deployment)
                 return_code = HTTPStatus.CREATED
             except ValidationError as e:
-                result= {
-                   'status': 'ERROR', 
-                   'message': gettext('Invalid data for %(name)s.)',
-                                      name=self.human_name),
-                   'errors': translate_validation(e.messages)
+                result = {
+                    'status': 'ERROR',
+                    'message': gettext('Invalid data for %(name)s.',
+                                       name=self.human_name),
+                    'errors': translate_validation(e.messages)
                 }
             except Exception as e:
                 result = {'status': 'ERROR',
@@ -138,6 +137,7 @@ class DeploymentListApi(Resource):
 
 class DeploymentDetailApi(Resource):
     """ REST API for a single instance of class Deployment """
+
     def __init__(self):
         self.human_name = gettext('Deployment')
 
@@ -235,12 +235,12 @@ class DeploymentDetailApi(Resource):
                             deployment)]
                     }
             except ValidationError as e:
-                result= {
-                   'status': 'ERROR', 
-                   'message': gettext('Invalid data for %(name)s (id=%(id)s)',
-                                      name=self.human_name,
-                                      id=deployment_id),
-                   'errors': translate_validation(e.messages)
+                result = {
+                    'status': 'ERROR',
+                    'message': gettext('Invalid data for %(name)s (id=%(id)s)',
+                                       name=self.human_name,
+                                       id=deployment_id),
+                    'errors': translate_validation(e.messages)
                 }
             except Exception as e:
                 result = {'status': 'ERROR',

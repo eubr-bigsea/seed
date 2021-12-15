@@ -17,6 +17,7 @@ import os
 import eventlet.wsgi
 import sqlalchemy_utils
 import yaml
+import decimal
 
 from flask_migrate import Migrate
 from flask import Flask
@@ -39,11 +40,20 @@ from seed.deployment_metric_api import DeploymentMetricDetailApi
 from seed.deployment_metric_api import DeploymentMetricListApi
 
 from seed.models import db
+from flask.json import JSONEncoder
+
+class JsonEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, decimal.Decimal):
+            return float(obj)
+        return JSONEncoder.default(self, obj)
 
 sqlalchemy_utils.i18n.get_locale = get_locale
 
 # eventlet.monkey_patch(all=True)
 app = Flask(__name__)
+
+app.json_encoder = JsonEncoder
 
 babel = Babel(app)
 

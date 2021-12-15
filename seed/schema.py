@@ -107,10 +107,15 @@ class DeploymentCreateRequestSchema(BaseSchema):
     created = fields.DateTime(required=False, allow_none=True)
     updated = fields.DateTime(required=False, allow_none=True)
     command = fields.String(required=False, allow_none=True)
-    workflow_name = fields.String(required=True)
+    workflow_name = fields.String(
+        required=False,
+        allow_none=True,
+        missing='',
+        default='')
     workflow_id = fields.Integer(required=False, allow_none=True)
     job_id = fields.Integer(required=False, allow_none=True)
     model_id = fields.Integer(required=False, allow_none=True)
+    model_name = fields.String(required=True)
     user_id = fields.Integer(required=True)
     user_login = fields.String(required=True)
     user_name = fields.String(required=True)
@@ -175,6 +180,10 @@ class DeploymentListResponseSchema(BaseSchema):
     command = fields.String(required=False, allow_none=True)
     job_id = fields.Integer(required=False, allow_none=True)
     model_id = fields.Integer(required=False, allow_none=True)
+    model_name = fields.String(required=True)
+    user_id = fields.Integer(required=True)
+    user_login = fields.String(required=True)
+    user_name = fields.String(required=True)
     enabled = fields.Boolean(
         required=False,
         allow_none=True,
@@ -250,6 +259,7 @@ class DeploymentItemResponseSchema(BaseSchema):
     updated = fields.DateTime(required=False, allow_none=True)
     command = fields.String(required=False, allow_none=True)
     model_id = fields.Integer(required=False, allow_none=True)
+    model_name = fields.String(required=True)
     enabled = fields.Boolean(
         required=False,
         allow_none=True,
@@ -319,6 +329,7 @@ class DeploymentItemResponseSchema(BaseSchema):
 class DeploymentImageListResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
+    description = fields.String(required=True)
     name = fields.String(required=True)
     tag = fields.String(required=True)
     enabled = fields.Boolean(required=True)
@@ -337,6 +348,7 @@ class DeploymentImageListResponseSchema(BaseSchema):
 class DeploymentImageItemResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
+    description = fields.String(required=True)
     name = fields.String(required=True)
     tag = fields.String(required=True)
     enabled = fields.Boolean(required=True)
@@ -355,6 +367,7 @@ class DeploymentImageItemResponseSchema(BaseSchema):
 class DeploymentImageCreateRequestSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
+    description = fields.String(required=True)
     name = fields.String(required=True)
     tag = fields.String(required=True)
     enabled = fields.Boolean(required=True)
@@ -507,7 +520,7 @@ class DeploymentTargetCreateRequestSchema(BaseSchema):
     authentication_info = fields.String(required=False, allow_none=True)
     enabled = fields.Boolean(required=True)
     target_type = fields.String(required=True,
-                                validate=[OneOf(list(DeploymentTypeTarget.__dict__.keys()))])
+                                validate=[OneOf(list(DeploymentTargetType.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
     namespace = fields.String(required=True)
     target_port = fields.String(required=True)
@@ -531,7 +544,7 @@ class DeploymentTargetListResponseSchema(BaseSchema):
     description = fields.String(required=False, allow_none=True)
     enabled = fields.Boolean(required=True)
     target_type = fields.String(required=True,
-                                validate=[OneOf(list(DeploymentTypeTarget.__dict__.keys()))])
+                                validate=[OneOf(list(DeploymentTargetType.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
     namespace = fields.String(required=True)
     target_port = fields.String(required=True)
@@ -557,7 +570,7 @@ class DeploymentTargetItemResponseSchema(BaseSchema):
     authentication_info = fields.String(required=False, allow_none=True)
     enabled = fields.Boolean(required=True)
     target_type = fields.String(required=True,
-                                validate=[OneOf(list(DeploymentTypeTarget.__dict__.keys()))])
+                                validate=[OneOf(list(DeploymentTargetType.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
     namespace = fields.String(required=True)
     target_port = fields.String(required=True)
