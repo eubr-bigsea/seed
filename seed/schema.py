@@ -102,6 +102,8 @@ class ClientItemResponseSchema(BaseSchema):
 class DeploymentCreateRequestSchema(BaseSchema):
     """ JSON serialization schema """
     name = fields.String(required=True)
+    version = fields.Integer(required=True)
+    internal_name = fields.String(required=False, allow_none=True)
     description = fields.String(required=False, allow_none=True)
     created = fields.DateTime(required=False, allow_none=True)
     updated = fields.DateTime(required=False, allow_none=True)
@@ -154,11 +156,13 @@ class DeploymentCreateRequestSchema(BaseSchema):
         allow_none=True,
         missing='1000m',
         default='1000m')
+    base_service_url = fields.String(required=False, allow_none=True)
     port = fields.Integer(required=False, allow_none=True)
     extra_parameters = fields.String(required=False, allow_none=True)
     input_spec = fields.String(required=False, allow_none=True)
     output_spec = fields.String(required=False, allow_none=True)
     assets = fields.String(required=False, allow_none=True)
+    execution_id = fields.String(required=False, allow_none=True)
     deploy = fields.Boolean(default=False, allow_none=True)
     target_id = fields.Integer(required=True)
     image_id = fields.Integer(required=True)
@@ -178,6 +182,8 @@ class DeploymentListResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
     name = fields.String(required=True)
+    version = fields.Integer(required=True)
+    internal_name = fields.String(required=False, allow_none=True)
     description = fields.String(required=False, allow_none=True)
     created = fields.DateTime(required=False, allow_none=True)
     updated = fields.DateTime(required=False, allow_none=True)
@@ -225,11 +231,13 @@ class DeploymentListResponseSchema(BaseSchema):
         allow_none=True,
         missing='1000m',
         default='1000m')
+    base_service_url = fields.String(required=False, allow_none=True)
     port = fields.Integer(required=False, allow_none=True)
     extra_parameters = fields.String(required=False, allow_none=True)
     input_spec = fields.String(required=False, allow_none=True)
     output_spec = fields.String(required=False, allow_none=True)
     assets = fields.String(required=False, allow_none=True)
+    execution_id = fields.String(required=False, allow_none=True)
     target = fields.Nested(
         'seed.schema.DeploymentTargetListResponseSchema',
         required=True)
@@ -262,6 +270,8 @@ class DeploymentItemResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
     name = fields.String(required=True)
+    version = fields.Integer(required=True)
+    internal_name = fields.String(required=False, allow_none=True)
     description = fields.String(required=False, allow_none=True)
     created = fields.DateTime(required=False, allow_none=True)
     updated = fields.DateTime(required=False, allow_none=True)
@@ -305,11 +315,13 @@ class DeploymentItemResponseSchema(BaseSchema):
         allow_none=True,
         missing='1000m',
         default='1000m')
+    base_service_url = fields.String(required=False, allow_none=True)
     port = fields.Integer(required=False, allow_none=True)
     extra_parameters = fields.String(required=False, allow_none=True)
     input_spec = fields.String(required=False, allow_none=True)
     output_spec = fields.String(required=False, allow_none=True)
     assets = fields.String(required=False, allow_none=True)
+    execution_id = fields.String(required=False, allow_none=True)
     target = fields.Nested(
         'seed.schema.DeploymentTargetItemResponseSchema',
         required=True)
@@ -531,6 +543,8 @@ class DeploymentTargetCreateRequestSchema(BaseSchema):
     url = fields.String(required=True)
     authentication_info = fields.String(required=False, allow_none=True)
     enabled = fields.Boolean(required=True)
+    base_service_url = fields.String(required=True)
+    port = fields.Integer(required=True)
     target_type = fields.String(required=True,
                                 validate=[OneOf(list(DeploymentTargetType.__dict__.keys()))])
     descriptor = fields.String(required=False, allow_none=True)
@@ -551,12 +565,11 @@ class DeploymentTargetListResponseSchema(BaseSchema):
     id = fields.Integer(required=True)
     name = fields.String(required=True)
     namespace = fields.String(required=True)
-    volume_path = fields.String(required=True)
     description = fields.String(required=False, allow_none=True)
     enabled = fields.Boolean(required=True)
+    base_service_url = fields.String(required=True)
     target_type = fields.String(required=True,
                                 validate=[OneOf(list(DeploymentTargetType.__dict__.keys()))])
-    descriptor = fields.String(required=False, allow_none=True)
 
     # noinspection PyUnresolvedReferences
     @post_load
@@ -574,14 +587,11 @@ class DeploymentTargetItemResponseSchema(BaseSchema):
     id = fields.Integer(required=True)
     name = fields.String(required=True)
     namespace = fields.String(required=True)
-    volume_path = fields.String(required=True)
     description = fields.String(required=False, allow_none=True)
-    url = fields.String(required=True)
-    authentication_info = fields.String(required=False, allow_none=True)
     enabled = fields.Boolean(required=True)
+    base_service_url = fields.String(required=True)
     target_type = fields.String(required=True,
                                 validate=[OneOf(list(DeploymentTargetType.__dict__.keys()))])
-    descriptor = fields.String(required=False, allow_none=True)
 
     # noinspection PyUnresolvedReferences
     @post_load

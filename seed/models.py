@@ -1,4 +1,5 @@
 import datetime
+import json
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Float, \
     Enum, DateTime, Numeric, Text, Unicode, UnicodeText
@@ -39,6 +40,8 @@ class DeploymentStatus:
     SUSPENDED = 'SUSPENDED'
     PENDING = 'PENDING'
     DEPLOYED = 'DEPLOYED'
+    PENDING_UNDEPLOY = 'PENDING_UNDEPLOY'
+    DEPLOYED_OLD = 'DEPLOYED_OLD'
 
     @staticmethod
     def values():
@@ -95,6 +98,8 @@ class Deployment(db.Model):
     # Fields
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
+    version = Column(Integer, nullable=False)
+    internal_name = Column(String(100))
     description = Column(String(400))
     created = Column(DateTime,
                      default=func.now(), nullable=False)
@@ -132,11 +137,13 @@ class Deployment(db.Model):
                          default='500m')
     limit_cpu = Column(String(20),
                        default='1000m')
+    base_service_url = Column(String(500))
     port = Column(Integer)
     extra_parameters = Column(LONGTEXT)
     input_spec = Column(LONGTEXT)
     output_spec = Column(LONGTEXT)
     assets = Column(LONGTEXT)
+    execution_id = Column(String(200))
 
     # Associations
     target_id = Column(Integer,
@@ -256,6 +263,8 @@ class DeploymentTarget(db.Model):
     url = Column(String(500), nullable=False)
     authentication_info = Column(String(2500))
     enabled = Column(Boolean, nullable=False)
+    base_service_url = Column(String(500), nullable=False)
+    port = Column(Integer, nullable=False)
     target_type = Column(Enum(*list(DeploymentTargetType.values()),
                               name='DeploymentTargetTypeEnumType'), nullable=False)
     descriptor = Column(LONGTEXT)
