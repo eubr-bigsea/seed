@@ -114,7 +114,8 @@ class DeploymentListApi(Resource):
                     deployment.current_status = DStatus.PENDING
                 else:
                     deployment.current_status = DStatus.SAVED
-
+                
+                deployment.enabled = True
                 db.session.add(deployment)
                 db.session.commit()
                 result = response_schema.dump(deployment)
@@ -173,7 +174,7 @@ class DeploymentDetailApi(Resource):
 
     @requires_auth
     def delete(self, deployment_id: int) -> Any:
-        """Disable the deployment (instead of deleting it)
+        """Disable the deployment, instead of deleting it (soft delete).
         """
         return_code = HTTPStatus.NO_CONTENT
         if log.isEnabledFor(logging.DEBUG):
@@ -191,6 +192,7 @@ class DeploymentDetailApi(Resource):
                     pass  # Nothing to do
                 else:
                     deployment.current_status = DStatus.SUSPENDED
+                deployment.enabled = False
                 db.session.add(deployment)
                 db.session.commit()
                 result = {
@@ -243,6 +245,9 @@ class DeploymentDetailApi(Resource):
                     deployment.internal_name = get_internal_name(deployment)
 
                 deployment = db.session.merge(deployment)
+                
+                deployment.base_service_url = deployment.target.base_service_url
+                db.session.add(deployment)
                 db.session.commit()
 
                 if deployment is not None:
