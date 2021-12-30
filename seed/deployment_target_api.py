@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-}
 import math
 import logging
 
@@ -64,7 +63,7 @@ class DeploymentTargetListApi(Resource):
         result = {'status': 'ERROR',
                   'message': gettext("Missing json in the request body")}
         return_code = HTTPStatus.BAD_REQUEST
-        
+
         if request.json is not None:
             request_schema = DeploymentTargetCreateRequestSchema()
             response_schema = DeploymentTargetItemResponseSchema()
@@ -78,11 +77,11 @@ class DeploymentTargetListApi(Resource):
                 result = response_schema.dump(deployment_target)
                 return_code = HTTPStatus.CREATED
             except ValidationError as e:
-                result= {
-                   'status': 'ERROR', 
-                   'message': gettext('Invalid data for %(name)s.)',
-                                      name=self.human_name),
-                   'errors': translate_validation(e.messages)
+                result = {
+                    'status': 'ERROR',
+                    'message': gettext('Invalid data for %(name)s.)',
+                                       name=self.human_name),
+                    'errors': translate_validation(e.messages)
                 }
             except Exception as e:
                 result = {'status': 'ERROR',
@@ -99,6 +98,7 @@ class DeploymentTargetListApi(Resource):
 
 class DeploymentTargetDetailApi(Resource):
     """ REST API for a single instance of class DeploymentTarget """
+
     def __init__(self):
         self.human_name = gettext('DeploymentTarget')
 
@@ -191,12 +191,12 @@ class DeploymentTargetDetailApi(Resource):
                             deployment_target)]
                     }
             except ValidationError as e:
-                result= {
-                   'status': 'ERROR', 
-                   'message': gettext('Invalid data for %(name)s (id=%(id)s)',
-                                      name=self.human_name,
-                                      id=deployment_target_id),
-                   'errors': translate_validation(e.messages)
+                result = {
+                    'status': 'ERROR',
+                    'message': gettext('Invalid data for %(name)s (id=%(id)s)',
+                                       name=self.human_name,
+                                       id=deployment_target_id),
+                    'errors': translate_validation(e.messages)
                 }
             except Exception as e:
                 result = {'status': 'ERROR',
