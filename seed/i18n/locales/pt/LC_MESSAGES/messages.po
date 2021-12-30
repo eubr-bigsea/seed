@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2019-06-26 09:06-0300\n"
-"PO-Revision-Date: 2019-06-26 09:09-0300\n"
+"POT-Creation-Date: 2021-12-14 18:00-0300\n"
+"PO-Revision-Date: 2021-12-14 18:06-0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: pt_BR\n"
@@ -16,164 +16,156 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.6.0\n"
-"X-Generator: Poedit 1.8.7.1\n"
+"X-Generator: Poedit 3.0\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: seed/app.py:78
+#: seed/app.py:93
 msgid "Missing data for required field."
 msgstr "Dados ausentes para campo obrigatório."
 
-#: seed/app.py:79
+#: seed/app.py:94
 msgid "Not a valid integer."
 msgstr "Não é um número inteiro válido."
 
-#: seed/app.py:80
+#: seed/app.py:95
 msgid "Not a valid datetime."
 msgstr "Não é um valor para data/hora válido."
 
-#: seed/client_api.py:25 seed/client_api.py:103
+#: seed/client_api.py:23 seed/client_api.py:103
 msgid "Client"
 msgstr "Cliente"
 
-#: seed/client_api.py:61 seed/deployment_api.py:89
-#: seed/deployment_image_api.py:67 seed/deployment_log_api.py:56
-#: seed/deployment_metric_api.py:61 seed/deployment_target_api.py:61
-#: seed/traceability_api.py:73
+#: seed/client_api.py:59 seed/deployment_api.py:77
+#: seed/deployment_image_api.py:64 seed/deployment_log_api.py:53
+#: seed/deployment_metric_api.py:58 seed/deployment_target_api.py:58
 #, python-format
 msgid "Listing %(name)s"
 msgstr "Listando %(name)s"
 
-#: seed/client_api.py:67 seed/deployment_api.py:95
-#: seed/deployment_image_api.py:73 seed/deployment_log_api.py:62
-#: seed/deployment_metric_api.py:67 seed/deployment_target_api.py:67
-#: seed/traceability_api.py:79
+#: seed/client_api.py:65 seed/deployment_api.py:84
+#: seed/deployment_image_api.py:70 seed/deployment_log_api.py:59
+#: seed/deployment_metric_api.py:64 seed/deployment_target_api.py:64
 msgid "Missing json in the request body"
 msgstr "JSON ausente no corpo da requisição"
 
-#: seed/client_api.py:76 seed/deployment_api.py:111
-#: seed/deployment_image_api.py:82 seed/deployment_log_api.py:71
-#: seed/deployment_metric_api.py:76 seed/deployment_target_api.py:76
-#: seed/traceability_api.py:88
-msgid "Validation error"
-msgstr "Erro de validação"
-
-#: seed/client_api.py:81 seed/deployment_api.py:116
-#: seed/deployment_image_api.py:87 seed/deployment_log_api.py:76
-#: seed/deployment_metric_api.py:81 seed/deployment_target_api.py:81
-#: seed/traceability_api.py:93
+#: seed/client_api.py:74 seed/deployment_api.py:99
+#: seed/deployment_image_api.py:79 seed/deployment_log_api.py:68
+#: seed/deployment_metric_api.py:73 seed/deployment_target_api.py:73
 #, python-format
 msgid "Adding %s"
 msgstr "Adicionando %s"
 
-#: seed/client_api.py:89 seed/client_api.py:149 seed/client_api.py:196
-#: seed/deployment_api.py:124 seed/deployment_api.py:184
-#: seed/deployment_api.py:231 seed/deployment_image_api.py:95
-#: seed/deployment_image_api.py:155 seed/deployment_image_api.py:202
-#: seed/deployment_log_api.py:84 seed/deployment_log_api.py:144
-#: seed/deployment_log_api.py:191 seed/deployment_metric_api.py:89
-#: seed/deployment_metric_api.py:149 seed/deployment_metric_api.py:196
-#: seed/deployment_target_api.py:89 seed/deployment_target_api.py:149
-#: seed/deployment_target_api.py:196 seed/traceability_api.py:101
-#: seed/traceability_api.py:162 seed/traceability_api.py:209
+#: seed/client_api.py:83 seed/deployment_image_api.py:88
+#: seed/deployment_log_api.py:77 seed/deployment_metric_api.py:82
+#: seed/deployment_target_api.py:82
+#, python-format
+msgid "Invalid data for %(name)s.)"
+msgstr "Dados inválidos para %(name)s."
+
+#: seed/client_api.py:89 seed/client_api.py:149 seed/client_api.py:203
+#: seed/deployment_api.py:114 seed/deployment_api.py:175
+#: seed/deployment_api.py:229 seed/deployment_image_api.py:94
+#: seed/deployment_image_api.py:154 seed/deployment_image_api.py:208
+#: seed/deployment_log_api.py:83 seed/deployment_log_api.py:143
+#: seed/deployment_log_api.py:197 seed/deployment_metric_api.py:88
+#: seed/deployment_metric_api.py:148 seed/deployment_metric_api.py:202
+#: seed/deployment_target_api.py:88 seed/deployment_target_api.py:149
+#: seed/deployment_target_api.py:203
 msgid "Internal error"
 msgstr "Erro interno"
 
-#: seed/client_api.py:109 seed/deployment_api.py:144
-#: seed/deployment_image_api.py:115 seed/deployment_log_api.py:104
-#: seed/deployment_metric_api.py:109 seed/deployment_target_api.py:109
-#: seed/traceability_api.py:122
+#: seed/client_api.py:109 seed/deployment_api.py:135
+#: seed/deployment_image_api.py:114 seed/deployment_log_api.py:103
+#: seed/deployment_metric_api.py:108 seed/deployment_target_api.py:109
 #, python-format
 msgid "Retrieving %s (id=%s)"
 msgstr "Recuperando %s (id=%s)"
 
-#: seed/client_api.py:124 seed/deployment_api.py:159
-#: seed/deployment_image_api.py:130 seed/deployment_log_api.py:119
-#: seed/deployment_metric_api.py:124 seed/deployment_target_api.py:124
-#: seed/traceability_api.py:137
+#: seed/client_api.py:124 seed/deployment_api.py:150
+#: seed/deployment_image_api.py:129 seed/deployment_log_api.py:118
+#: seed/deployment_metric_api.py:123 seed/deployment_target_api.py:124
 #, python-format
 msgid "%(name)s not found (id=%(id)s)"
 msgstr "%(name)s não encontrado (id=%(id)s)"
 
-#: seed/client_api.py:135 seed/deployment_api.py:170
-#: seed/deployment_image_api.py:141 seed/deployment_log_api.py:130
-#: seed/deployment_metric_api.py:135 seed/deployment_target_api.py:135
-#: seed/traceability_api.py:148
+#: seed/client_api.py:135 seed/deployment_api.py:161
+#: seed/deployment_image_api.py:140 seed/deployment_log_api.py:129
+#: seed/deployment_metric_api.py:134 seed/deployment_target_api.py:135
 #, python-format
 msgid "Deleting %s (id=%s)"
 msgstr "Excluindo %s (id=%s)"
 
-#: seed/client_api.py:144 seed/deployment_api.py:179
-#: seed/deployment_image_api.py:150 seed/deployment_log_api.py:139
-#: seed/deployment_metric_api.py:144 seed/deployment_target_api.py:144
-#: seed/traceability_api.py:157
+#: seed/client_api.py:144 seed/deployment_api.py:170
+#: seed/deployment_image_api.py:149 seed/deployment_log_api.py:138
+#: seed/deployment_metric_api.py:143 seed/deployment_target_api.py:144
 #, python-format
 msgid "%(name)s deleted with success!"
 msgstr "%(name)s excluído com sucesso!"
 
-#: seed/client_api.py:158 seed/deployment_api.py:193
-#: seed/deployment_image_api.py:164 seed/deployment_log_api.py:153
-#: seed/deployment_metric_api.py:158 seed/deployment_target_api.py:158
-#: seed/traceability_api.py:171
+#: seed/client_api.py:158 seed/deployment_api.py:184
+#: seed/deployment_image_api.py:163 seed/deployment_log_api.py:152
+#: seed/deployment_metric_api.py:157 seed/deployment_target_api.py:158
 #, python-format
 msgid "%(name)s not found (id=%(id)s)."
 msgstr "%(name)s not found (id=%(id)s)."
 
-#: seed/client_api.py:165 seed/deployment_api.py:200
-#: seed/deployment_image_api.py:171 seed/deployment_log_api.py:160
-#: seed/deployment_metric_api.py:165 seed/deployment_target_api.py:165
-#: seed/traceability_api.py:178
+#: seed/client_api.py:165 seed/deployment_api.py:191
+#: seed/deployment_image_api.py:170 seed/deployment_log_api.py:159
+#: seed/deployment_metric_api.py:164 seed/deployment_target_api.py:165
 msgid "Insufficient data."
 msgstr "Dados insuficientes."
 
-#: seed/client_api.py:169 seed/deployment_api.py:204
-#: seed/deployment_image_api.py:175 seed/deployment_log_api.py:164
-#: seed/deployment_metric_api.py:169 seed/deployment_target_api.py:169
-#: seed/traceability_api.py:182
+#: seed/client_api.py:169 seed/deployment_api.py:195
+#: seed/deployment_image_api.py:174 seed/deployment_log_api.py:163
+#: seed/deployment_metric_api.py:168 seed/deployment_target_api.py:169
 #, python-format
 msgid "Updating %s (id=%s)"
 msgstr "Atualizando %s (id=%s)"
 
-#: seed/client_api.py:187 seed/deployment_api.py:222
-#: seed/deployment_image_api.py:193 seed/deployment_log_api.py:182
-#: seed/deployment_metric_api.py:187 seed/deployment_target_api.py:187
-#: seed/traceability_api.py:200
+#: seed/client_api.py:186 seed/deployment_api.py:212
+#: seed/deployment_image_api.py:191 seed/deployment_log_api.py:180
+#: seed/deployment_metric_api.py:185 seed/deployment_target_api.py:186
 #, python-format
 msgid "%(n)s (id=%(id)s) was updated with success!"
 msgstr "%(n)s (id=%(id)s) atualizado com sucesso!"
 
-#: seed/client_api.py:204 seed/deployment_api.py:239
-#: seed/deployment_image_api.py:210 seed/deployment_log_api.py:199
-#: seed/deployment_metric_api.py:204 seed/deployment_target_api.py:204
-#: seed/traceability_api.py:217
+#: seed/client_api.py:196 seed/deployment_api.py:222
+#: seed/deployment_image_api.py:201 seed/deployment_log_api.py:190
+#: seed/deployment_metric_api.py:195 seed/deployment_target_api.py:196
 #, python-format
 msgid "Invalid data for %(name)s (id=%(id)s)"
 msgstr "Dados inválidos para %(name)s (id=%(id)s)"
 
-#: seed/deployment_api.py:39 seed/deployment_api.py:138
+#: seed/deployment_api.py:33 seed/deployment_api.py:129
 msgid "Deployment"
 msgstr "Implantação"
 
-#: seed/deployment_image_api.py:25 seed/deployment_image_api.py:109
+#: seed/deployment_api.py:108
+#, python-format
+msgid "Invalid data for %(name)s."
+msgstr "Dados inválidos para %(name)s"
+
+#: seed/deployment_image_api.py:22 seed/deployment_image_api.py:108
 msgid "DeploymentImage"
 msgstr "Imagem de implantação"
 
-#: seed/deployment_log_api.py:25 seed/deployment_log_api.py:98
+#: seed/deployment_log_api.py:22 seed/deployment_log_api.py:97
 msgid "DeploymentLog"
 msgstr "Registro de implantação"
 
-#: seed/deployment_metric_api.py:25 seed/deployment_metric_api.py:103
+#: seed/deployment_metric_api.py:22 seed/deployment_metric_api.py:102
 msgid "DeploymentMetric"
 msgstr "Métrica de implantação"
 
-#: seed/deployment_target_api.py:25 seed/deployment_target_api.py:103
+#: seed/deployment_target_api.py:22 seed/deployment_target_api.py:103
 msgid "DeploymentTarget"
 msgstr "Alvo de implantação"
 
-#: seed/jobs.py:92
+#: seed/jobs.py:210
 msgid "Successfully deployed as a service"
 msgstr "Serviço implantado com sucesso"
 
-#: seed/jobs.py:106
+#: seed/jobs.py:224
 msgid ""
 "Error in deployment {}: \n"
 " {}"
@@ -181,17 +173,17 @@ msgstr ""
 "Erro na implantação {} \n"
 "{}"
 
-#: seed/traceability_api.py:24 seed/traceability_api.py:116
-msgid "Traceability"
-msgstr "Rastreabilidade"
+#~ msgid "Validation error"
+#~ msgstr "Erro de validação"
 
-#: seed/traceability_api.py:40
-msgid "Invalid auditable type: {}"
-msgstr "Tipo auditável inválido: {}"
+#~ msgid "Traceability"
+#~ msgstr "Rastreabilidade"
 
-#: seed/traceability_api.py:46
-msgid "Target must be a number"
-msgstr "Alvo deve ser um número inteiro"
+#~ msgid "Invalid auditable type: {}"
+#~ msgstr "Tipo auditável inválido: {}"
+
+#~ msgid "Target must be a number"
+#~ msgstr "Alvo deve ser um número inteiro"
 
 #~ msgid "Listing %s"
 #~ msgstr "Listando %s"

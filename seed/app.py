@@ -3,13 +3,14 @@
 # noinspection PyBroadException
 
 try:
-    import eventlet
+    # import eventlet
 
     # eventlet.monkey_patch(all=True, thread=False)
     pass
 except:
     pass
 
+import decimal
 import logging
 import logging.config
 import os
@@ -17,66 +18,83 @@ import os
 import eventlet.wsgi
 import sqlalchemy_utils
 import yaml
-
-from flask_migrate import Migrate
-from flask import Flask
-from flask import request
-from flask_babel import get_locale, Babel
+from flask import Flask, request
+from flask.json import JSONEncoder
+from flask_babel import Babel, get_locale, gettext
 from flask_cors import CORS
+from flask_migrate import Migrate
 from flask_restful import Api
-from seed import rq
-from seed.deployment_api import DeploymentDetailApi
-from seed.deployment_api import DeploymentListApi
-from seed.deployment_image_api import DeploymentImageDetailApi
-from seed.deployment_image_api import DeploymentImageListApi
-from seed.deployment_target_api import DeploymentTargetDetailApi
-from seed.deployment_target_api import DeploymentTargetListApi
-from seed.client_api import ClientDetailApi
-from seed.client_api import ClientListApi
-from seed.deployment_log_api import DeploymentLogDetailApi
-from seed.deployment_log_api import DeploymentLogListApi
-from seed.deployment_metric_api import DeploymentMetricDetailApi
-from seed.deployment_metric_api import DeploymentMetricListApi
 
+from seed import rq
+from seed.client_api import ClientDetailApi, ClientListApi
+from seed.deployment_api import DeploymentDetailApi, DeploymentListApi
+from seed.deployment_image_api import (DeploymentImageDetailApi,
+                                       DeploymentImageListApi)
+from seed.deployment_log_api import (DeploymentLogDetailApi,
+                                     DeploymentLogListApi)
+from seed.deployment_metric_api import (DeploymentMetricDetailApi,
+                                        DeploymentMetricListApi)
+from seed.deployment_target_api import (DeploymentTargetDetailApi,
+                                        DeploymentTargetListApi)
 from seed.models import db
 
-sqlalchemy_utils.i18n.get_locale = get_locale
 
-# eventlet.monkey_patch(all=True)
-app = Flask(__name__)
+class JsonEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, decimal.Decimal):
+            return float(obj)
+        return JSONEncoder.default(self, obj)
 
-babel = Babel(app)
 
-logging.config.fileConfig('logging_config.ini')
+def create_babel(app):
+    return Babel(app)
 
-app.secret_key = 'l3m0n4d1'
 
-# CORS
-CORS(app, resources={r"/*": {"origins": "*"}})
-api = Api(app)
+def create_app():
+    sqlalchemy_utils.i18n.get_locale = get_locale
 
-mappings = {
-    '/deployments': DeploymentListApi,
-    '/deployments/<int:deployment_id>': DeploymentDetailApi,
-    '/images/<int:deployment_image_id>': DeploymentImageDetailApi,
-    '/images': DeploymentImageListApi,
-    '/targets/<int:deployment_target_id>': DeploymentTargetDetailApi,
-    '/targets': DeploymentTargetListApi,
-    '/clients': ClientListApi,
-    '/clients/<int:client_id>': ClientDetailApi,
-    '/logs': DeploymentLogListApi,
-    '/logs/<int:deployment_log_id>': DeploymentLogDetailApi,
-    '/metrics': DeploymentMetricListApi,
-    '/metrics/<int:deployment_metric_id>': DeploymentMetricDetailApi,
-}
-for path, view in list(mappings.items()):
-    api.add_resource(view, path)
+    # eventlet.monkey_patch(all=True)
+    app = Flask(__name__)
+
+    app.json_encoder = JsonEncoder
+
+    babel = create_babel(app)
+
+    logging.config.fileConfig('logging_config.ini')
+
+    app.secret_key = 'l3m0n4d1'
+
+    # CORS
+    CORS(app, resources={r"/*": {"origins": "*"}})
+    api = Api(app)
+
+    mappings = {
+        '/deployments': DeploymentListApi,
+        '/deployments/<int:deployment_id>': DeploymentDetailApi,
+        '/images/<int:deployment_image_id>': DeploymentImageDetailApi,
+        '/images': DeploymentImageListApi,
+        '/targets/<int:deployment_target_id>': DeploymentTargetDetailApi,
+        '/targets': DeploymentTargetListApi,
+        '/clients': ClientListApi,
+        '/clients/<int:client_id>': ClientDetailApi,
+        '/logs': DeploymentLogListApi,
+        '/logs/<int:deployment_log_id>': DeploymentLogDetailApi,
+        '/metrics': DeploymentMetricListApi,
+        '/metrics/<int:deployment_metric_id>': DeploymentMetricDetailApi,
+    }
+    for path, view in list(mappings.items()):
+        api.add_resource(view, path)
+    return app
+
+
+app = create_app()
+babel = create_babel(app)
 
 
 @babel.localeselector
 def get_locale():
     return request.args.get('lang') or \
-           request.accept_languages.best_match(['pt', 'en']) or 'pt'
+        request.accept_languages.best_match(['pt', 'en']) or 'pt'
 
 
 # @requires_auth
@@ -137,7 +155,6 @@ def main(is_main_module):
 
         port = int(config.get('port', 5000))
         logger.debug('Running in %s mode', config.get('environment'))
-
         if is_main_module:
             if config.get('environment', 'dev') == 'dev':
                 app.run(debug=True, port=port)

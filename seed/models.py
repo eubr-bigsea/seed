@@ -18,7 +18,7 @@ db = SQLAlchemy()
 
 
 # noinspection PyClassHasNoInit
-class DeploymentTypeTarget:
+class DeploymentTargetType:
     DOCKER = 'DOCKER'
     KUBERNETES = 'KUBERNETES'
     MARATHON = 'MARATHON'
@@ -26,7 +26,7 @@ class DeploymentTypeTarget:
 
     @staticmethod
     def values():
-        return [n for n in list(DeploymentTypeTarget.__dict__.keys())
+        return [n for n in list(DeploymentTargetType.__dict__.keys())
                 if n[0] != '_' and n != 'values']
 
 
@@ -40,6 +40,8 @@ class DeploymentStatus:
     SUSPENDED = 'SUSPENDED'
     PENDING = 'PENDING'
     DEPLOYED = 'DEPLOYED'
+    PENDING_UNDEPLOY = 'PENDING_UNDEPLOY'
+    DEPLOYED_OLD = 'DEPLOYED_OLD'
 
     @staticmethod
     def values():
@@ -89,13 +91,15 @@ class Client(db.Model):
         return '<Instance {}: {}>'.format(self.__class__, self.id)
 
 
-class Deployment(db.Model): 
+class Deployment(db.Model):
     """ Deployment """
     __tablename__ = 'deployment'
 
     # Fields
     id = Column(Integer, primary_key=True)
-    name = Column(String(100))
+    name = Column(String(100), nullable=False)
+    version = Column(Integer, nullable=False)
+    internal_name = Column(String(100))
     description = Column(String(400))
     created = Column(DateTime,
                      default=func.now(), nullable=False)
@@ -103,10 +107,12 @@ class Deployment(db.Model):
                      default=func.now(), nullable=False,
                      onupdate=datetime.datetime.utcnow)
     command = Column(String(5000))
-    workflow_name = Column(String(200), nullable=False)
+    workflow_name = Column(String(200),
+                           default='')
     workflow_id = Column(Integer)
     job_id = Column(Integer)
     model_id = Column(Integer)
+    model_name = Column(String(200), nullable=False)
     user_id = Column(Integer, nullable=False)
     user_login = Column(String(100), nullable=False)
     user_name = Column(String(100), nullable=False)
@@ -127,15 +133,18 @@ class Deployment(db.Model):
     request_memory = Column(String(200),
                             default='128M', nullable=False)
     limit_memory = Column(String(200))
-    request_cpu = Column(String(200),
-                         default='100M', nullable=False)
-    limit_cpu = Column(String(200))
+    request_cpu = Column(String(20),
+                         default='500m')
+    limit_cpu = Column(String(20),
+                       default='1000m')
+    base_service_url = Column(String(500))
+    port = Column(Integer)
     extra_parameters = Column(LONGTEXT)
     input_spec = Column(LONGTEXT)
     output_spec = Column(LONGTEXT)
-    port = Column(String(10))
     assets = Column(LONGTEXT)
-    
+    execution_id = Column(String(200))
+
     # Associations
     target_id = Column(Integer,
                        ForeignKey("deployment_target.id",
@@ -157,7 +166,7 @@ class Deployment(db.Model):
         foreign_keys=[image_id])
 
     def __str__(self):
-        return self.description
+        return self.name
 
     def __repr__(self):
         return '<Instance {}: {}>'.format(self.__class__, self.id)
@@ -169,12 +178,13 @@ class DeploymentImage(db.Model):
 
     # Fields
     id = Column(Integer, primary_key=True)
+    description = Column(String(200), nullable=False)
     name = Column(String(100), nullable=False)
     tag = Column(String(100), nullable=False)
     enabled = Column(Boolean, nullable=False)
 
     def __str__(self):
-        return self.name
+        return self.description
 
     def __repr__(self):
         return '<Instance {}: {}>'.format(self.__class__, self.id)
@@ -247,17 +257,17 @@ class DeploymentTarget(db.Model):
     # Fields
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
+    namespace = Column(String(100), nullable=False)
+    volume_path = Column(String(250), nullable=False)
     description = Column(String(400))
     url = Column(String(500), nullable=False)
     authentication_info = Column(String(2500))
     enabled = Column(Boolean, nullable=False)
-    target_type = Column(Enum(*list(DeploymentTypeTarget.values()),
-                              name='DeploymentTypeEnumType'), nullable=False)
+    base_service_url = Column(String(500), nullable=False)
+    port = Column(Integer, nullable=False)
+    target_type = Column(Enum(*list(DeploymentTargetType.values()),
+                              name='DeploymentTargetTypeEnumType'), nullable=False)
     descriptor = Column(LONGTEXT)
-    namespace = Column(String(100), nullable=False)
-    target_port = Column(String(10), nullable=False)
-    volume_path = Column(LONGTEXT, nullable=False)
-
 
     def __str__(self):
         return self.name
