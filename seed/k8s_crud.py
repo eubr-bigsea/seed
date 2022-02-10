@@ -15,7 +15,7 @@ def _get_model_url(model_id: int) -> str:
     config = current_app.config['SEED_CONFIG']
     limonero_config = config['services']['limonero']
     resp = requests.get(f"{limonero_config['url']}/models/{model_id}",
-                        headers={'X-Auth-Token': limonero_config['token']})
+                        headers={'X-Auth-Token': limonero_config['auth_token']})
     data = resp.json()
     return data['storage']['url'] + data['path']
 
@@ -91,8 +91,9 @@ def create_deployment(deployment, deployment_image, deployment_target, api):
 
 def _get_next_port(services):
     ports = [START_PORT]
-    for service in services:
-        ports += [p.get('port', 0) for p in service['spec']['ports']]
+    for service in (services, []):
+        service_ports = service.get('spec', {}).get('ports',[]) or []
+        ports += [p.get('port', 0) for p in service_ports]
 
     return max(ports) + 1
 

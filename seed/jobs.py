@@ -43,7 +43,7 @@ def _notify_ui(**data):
         try:
             resp = requests.post(
                 f'{stand.get("url")}/room', data=json.dumps(data),
-                headers={'X-Auth-Token': stand.get('token'),
+                headers={'X-Auth-Token': stand.get('auth_token'),
                          'Content-type': 'application/json'})
         except:
             pass
