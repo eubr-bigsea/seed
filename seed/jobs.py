@@ -58,7 +58,7 @@ def report_jobs_errors(job, *exc_info):
     logger.error('ERROR', exc_info[0])
 
 
-@rq.job
+@rq.job('seed')
 def deploy(deployment_id: int, locale: str, user_id: int) -> None:
 
     gettext = ctx_gettext(locale)
@@ -165,7 +165,7 @@ def _get_api(deployment_target: DeploymentTarget,
     return api_apps
 
 
-@rq.job
+@rq.job('seed')
 def undeploy(deployment_id: int, locale: str, user_id: int) -> None:
     # noinspection PyBroadException
 
@@ -235,7 +235,7 @@ def undeploy(deployment_id: int, locale: str, user_id: int) -> None:
                    data={}, namespace='/stand')
 
 
-# @rq.job
+# @rq.job('seed')
 # def updeploy(deployment_id, locale):
 #     # noinspection PyBroadException
 
