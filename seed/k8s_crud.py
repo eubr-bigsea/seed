@@ -1,6 +1,7 @@
 import requests
 from flask import current_app
 from kubernetes import client, config
+from urllib import parser
 ########### Deployment ###########
 START_PORT = 31160
 
@@ -33,6 +34,12 @@ def create_deployment(deployment, deployment_image, deployment_target, api):
     deployment_version = "apps/v1"
     deployment_kind = "Deployment"
 
+    parsed = parser.urlparse(model_url)
+    using_file = False
+    if parsed.scheme == 'file':
+        using_file = True
+        model_url = parsed.path
+
     container = client.V1Container(
         name=pod_name,
         image=f'{deployment_image.name}:{deployment_image.tag}',
@@ -48,6 +55,16 @@ def create_deployment(deployment, deployment_image, deployment_target, api):
             client.V1EnvVar(name="MLEAP_MODEL", value=model_url),
         ]
     )
+    if using_file:
+        # Maps HDFS storage
+	pvc = client.V1PersistentVolumeClaim(
+	        api_version='v1',
+        	kind='PersistentVolumeClaim',
+	        metadata=client.V1ObjectMeta(
+        	    name='hdfs-pvc'
+	        )
+	)
+
 
     # Create and configure a spec section.
     template = client.V1PodTemplateSpec(
