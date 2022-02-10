@@ -102,7 +102,7 @@ class ClientItemResponseSchema(BaseSchema):
 class DeploymentCreateRequestSchema(BaseSchema):
     """ JSON serialization schema """
     name = fields.String(required=True)
-    version = fields.Integer(required=True)
+    version = fields.Integer(required=False)
     internal_name = fields.String(required=False, allow_none=True)
     description = fields.String(required=False, allow_none=True)
     created = fields.DateTime(required=False, allow_none=True)
@@ -182,7 +182,7 @@ class DeploymentListResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
     name = fields.String(required=True)
-    version = fields.Integer(required=True)
+    version = fields.Integer(required=False)
     internal_name = fields.String(required=False, allow_none=True)
     description = fields.String(required=False, allow_none=True)
     created = fields.DateTime(required=False, allow_none=True)
@@ -270,7 +270,7 @@ class DeploymentItemResponseSchema(BaseSchema):
     """ JSON serialization schema """
     id = fields.Integer(required=True)
     name = fields.String(required=True)
-    version = fields.Integer(required=True)
+    version = fields.Integer(required=False)
     internal_name = fields.String(required=False, allow_none=True)
     description = fields.String(required=False, allow_none=True)
     created = fields.DateTime(required=False, allow_none=True)

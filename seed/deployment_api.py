@@ -94,6 +94,7 @@ class DeploymentListApi(Resource):
             request.json['user_id'] = flask_globals.user.id
             request.json['user_login'] = flask_globals.user.login
             request.json['user_name'] = flask_globals.user.name
+            request.json['version'] = 1
             must_deploy = request.json.pop('deploy', 'False') in (
                 'True', 'true', 1)
 
@@ -113,7 +114,7 @@ class DeploymentListApi(Resource):
                         deployment.id,  flask_globals.user.locale, jobs.deploy)
                     deployment.current_status = DStatus.PENDING
                 else:
-                    deployment.current_status = DStatus.SAVED
+                    deployment.current_status = DStatus.STOPPPEDSAVED
                 
                 deployment.enabled = True
                 db.session.add(deployment)
@@ -259,6 +260,7 @@ class DeploymentDetailApi(Resource):
                         else:
                             deployment.current_status = DStatus.PENDING
 
+                        db.session.add(deployment)
                         db.session.commit()
                         schedule_deployment_job(deployment.id,
                                                 flask_globals.user.locale,
@@ -268,12 +270,14 @@ class DeploymentDetailApi(Resource):
                                 DStatus.PENDING_UNDEPLOY, DStatus.DEPLOYED_OLD, 
                                 DStatus.DEPLOYED]:
                             deployment.current_status = DStatus.PENDING_UNDEPLOY
+                            db.session.add(deployment)
                             db.session.commit()
                             schedule_deployment_job(deployment.id,
                                                 flask_globals.user.locale,
                                                 jobs.undeploy)
                     else:
                         deployment.current_status = DStatus.DEPLOYED_OLD
+                        db.session.add(deployment)
                         db.session.commit()
 
                     return_code = HTTPStatus.OK
