@@ -57,13 +57,13 @@ def create_deployment(deployment, deployment_image, deployment_target, api):
     )
     if using_file:
         # Maps HDFS storage
-	pvc = client.V1PersistentVolumeClaim(
-	        api_version='v1',
-        	kind='PersistentVolumeClaim',
-	        metadata=client.V1ObjectMeta(
-        	    name='hdfs-pvc'
-	        )
-	)
+        pvc = client.V1PersistentVolumeClaim(
+                api_version='v1',
+                kind='PersistentVolumeClaim',
+                metadata=client.V1ObjectMeta(
+                    name='hdfs-pvc'
+                )
+        )
 
 
     # Create and configure a spec section.
