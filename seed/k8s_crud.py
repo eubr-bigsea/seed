@@ -1,8 +1,7 @@
 import requests
 from flask import current_app
 from kubernetes import client, config
-from urllib import parser
-########### Deployment ###########
+from urllib import parse
 START_PORT = 31160
 
 
@@ -33,16 +32,32 @@ def create_deployment(deployment, deployment_image, deployment_target, api):
 
     deployment_version = "apps/v1"
     deployment_kind = "Deployment"
+    ns = deployment_target.namespace
 
-    parsed = parser.urlparse(model_url)
+    parsed = parse.urlparse(model_url)
     using_file = False
     if parsed.scheme == 'file':
         using_file = True
-        model_url = parsed.path
+
+    if using_file:
+        # Maps HDFS storage
+        volumes = [client.V1Volume(
+            name='hdfs-pvc',
+            persistent_volume_claim=
+                client.V1PersistentVolumeClaimVolumeSource(
+                    claim_name='hdfs-pvc'))]
+        mounts = [
+            client.V1VolumeMount(name='hdfs-pvc',
+                                 mount_path='/srv/storage/')
+        ]
+    else:
+        volumes = []
+        mounts = []
 
     container = client.V1Container(
         name=pod_name,
         image=f'{deployment_image.name}:{deployment_image.tag}',
+        volume_mounts=mounts,
         image_pull_policy="Always",
         ports=[client.V1ContainerPort(container_port=int(container_port))],
         resources=client.V1ResourceRequirements(
@@ -55,24 +70,14 @@ def create_deployment(deployment, deployment_image, deployment_target, api):
             client.V1EnvVar(name="MLEAP_MODEL", value=model_url),
         ]
     )
-    if using_file:
-        # Maps HDFS storage
-        pvc = client.V1PersistentVolumeClaim(
-                api_version='v1',
-                kind='PersistentVolumeClaim',
-                metadata=client.V1ObjectMeta(
-                    name='hdfs-pvc'
-                )
-        )
-
 
     # Create and configure a spec section.
     template = client.V1PodTemplateSpec(
-        metadata=client.V1ObjectMeta(labels={
-            'app': pod_name,
-            'seed/deployment-version': str(deployment.version)
-        }),
-        spec=client.V1PodSpec(containers=[container]),
+        metadata=client.V1ObjectMeta(
+            labels= {'app': pod_name, 'seed/deployment-version': str(deployment.version)}
+
+        ),
+        spec=client.V1PodSpec(containers=[container], volumes=volumes),
     )
 
     spec = client.V1DeploymentSpec(
@@ -89,20 +94,17 @@ def create_deployment(deployment, deployment_image, deployment_target, api):
                 'seed/deployment-version': str(deployment.version)
             }), spec=spec,
     )
-    # import pdb; pdb.set_trace()
 
-    ns = deployment_target.namespace
     if _deployment_exists(api, ns, deployment.internal_name):
         api.patch_namespaced_deployment(name=deployment.internal_name,
                                         body=deployment_obj, namespace=ns)
     else:
         api.create_namespaced_deployment(body=deployment_obj, namespace=ns)
-
     # Create service
     target_port = deployment_target.port
 
     deployment.port = create_service(deployment.internal_name,
-                                     deployment_target.namespace, target_port, 
+                                     deployment_target.namespace, target_port,
                                      deployment.port, api)
 
 
@@ -199,7 +201,7 @@ def create_service(deployment_name: str, namespace: str,
         #api_core.patch_namespaced_service(name=service_name,
         #                                  namespace=deployment_namespace, body=body)
             delete_service(service_name, namespace, api_core)
-            #api_core.delete_namespaced_service(name=service_name, 
+            #api_core.delete_namespaced_service(name=service_name,
             #    namespace=namespace)
     except:
         pass
@@ -220,3 +222,4 @@ def delete_service(service_name, deployment_namespace, api):
         name=service_name,
         namespace=deployment_namespace,
     )
+
