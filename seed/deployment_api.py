@@ -114,7 +114,7 @@ class DeploymentListApi(Resource):
                         deployment.id,  flask_globals.user.locale, jobs.deploy)
                     deployment.current_status = DStatus.PENDING
                 else:
-                    deployment.current_status = DStatus.STOPPPEDSAVED
+                    deployment.current_status = DStatus.SAVED
                 
                 deployment.enabled = True
                 db.session.add(deployment)
