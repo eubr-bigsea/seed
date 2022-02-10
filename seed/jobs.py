@@ -38,15 +38,19 @@ def ctx_gettext(locale: str):
 
 def _notify_ui(**data):
     services = current_app.config['SEED_CONFIG']['services']
+    print('-' * 20)
     if 'stand' in services:
         stand = services.get('stand')
         try:
             resp = requests.post(
                 f'{stand.get("url")}/room', data=json.dumps(data),
-                headers={'X-Auth-Token': stand.get('auth_token'),
+                headers={'X-Auth-Token': str(stand.get('auth_token')),
                          'Content-type': 'application/json'})
-        except:
+            print(resp.text)
+        except Exception as e:
+            print(e)
             pass
+    print('-' * 20)
 
 
 @rq.exception_handler
