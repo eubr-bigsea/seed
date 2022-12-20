@@ -5,7 +5,8 @@ import datetime
 import flask_migrate
 from seed.app import create_app
 from seed.models import (Deployment, db)
-
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 @pytest.fixture(scope='session')
 def app():
@@ -19,8 +20,11 @@ def client(app):
     # import pdb; pdb.set_trace()
     with app.test_client() as client:
         with app.app_context():
-            flask_migrate.downgrade(revision="base")
-            flask_migrate.upgrade(revision='head')
+            # db = SQLAlchemy(app)
+            # migrate = Migrate(app, db) # this
+
+            #flask_migrate.downgrade(revision="base")
+            #flask_migrate.upgrade(revision='head')
             client.secret = app.config['SEED_CONFIG']['secret']
             db.session.commit()
         yield client
