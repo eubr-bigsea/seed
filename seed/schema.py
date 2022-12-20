@@ -111,8 +111,8 @@ class DeploymentCreateRequestSchema(BaseSchema):
     workflow_name = fields.String(
         required=False,
         allow_none=True,
-        missing='',
-        default='')
+        load_default='',
+        dump_default='')
     workflow_id = fields.Integer(required=False, allow_none=True)
     job_id = fields.Integer(required=False, allow_none=True)
     model_id = fields.Integer(required=False, allow_none=True)
@@ -123,39 +123,39 @@ class DeploymentCreateRequestSchema(BaseSchema):
     enabled = fields.Boolean(
         required=False,
         allow_none=True,
-        missing=False,
-        default=False)
-    current_status = fields.String(required=False, allow_none=True, missing=DeploymentStatus.PENDING, default=DeploymentStatus.PENDING,
+        load_default=False,
+        dump_default=False)
+    current_status = fields.String(required=False, allow_none=True, load_default=DeploymentStatus.PENDING, dump_default=DeploymentStatus.PENDING,
                                    validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
-    type = fields.String(required=False, allow_none=True, missing=DeploymentType.MODEL, default=DeploymentType.MODEL,
+    type = fields.String(required=False, allow_none=True, load_default=DeploymentType.MODEL, dump_default=DeploymentType.MODEL,
                          validate=[OneOf(list(DeploymentType.__dict__.keys()))])
     attempts = fields.Integer(
         required=False,
         allow_none=True,
-        missing=0,
-        default=0)
+        load_default=0,
+        dump_default=0)
     entry_point = fields.String(required=False, allow_none=True)
     replicas = fields.Integer(
         required=False,
         allow_none=True,
-        missing=1,
-        default=1)
+        load_default=1,
+        dump_default=1)
     request_memory = fields.String(
         required=False,
         allow_none=True,
-        missing='128M',
-        default='128M')
+        load_default='128M',
+        dump_default='128M')
     limit_memory = fields.String(required=False, allow_none=True)
     request_cpu = fields.String(
         required=False,
         allow_none=True,
-        missing='500m',
-        default='500m')
+        load_default='500m',
+        dump_default='500m')
     limit_cpu = fields.String(
         required=False,
         allow_none=True,
-        missing='1000m',
-        default='1000m')
+        load_default='1000m',
+        dump_default='1000m')
     base_service_url = fields.String(required=False, allow_none=True)
     port = fields.Integer(required=False, allow_none=True)
     extra_parameters = fields.String(required=False, allow_none=True)
@@ -163,7 +163,7 @@ class DeploymentCreateRequestSchema(BaseSchema):
     output_spec = fields.String(required=False, allow_none=True)
     assets = fields.String(required=False, allow_none=True)
     execution_id = fields.String(required=False, allow_none=True)
-    deploy = fields.Boolean(default=False, allow_none=True)
+    deploy = fields.Boolean(dump_default=False, allow_none=True)
     target_id = fields.Integer(required=True)
     image_id = fields.Integer(required=True)
 
@@ -197,40 +197,40 @@ class DeploymentListResponseSchema(BaseSchema):
     enabled = fields.Boolean(
         required=False,
         allow_none=True,
-        missing=False,
-        default=False)
-    current_status = fields.String(required=False, allow_none=True, missing=DeploymentStatus.PENDING, default=DeploymentStatus.PENDING,
+        load_default=False,
+        dump_default=False)
+    current_status = fields.String(required=False, allow_none=True, load_default=DeploymentStatus.PENDING, dump_default=DeploymentStatus.PENDING,
                                    validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
-    type = fields.String(required=False, allow_none=True, missing=DeploymentType.MODEL, default=DeploymentType.MODEL,
+    type = fields.String(required=False, allow_none=True, load_default=DeploymentType.MODEL, dump_default=DeploymentType.MODEL,
                          validate=[OneOf(list(DeploymentType.__dict__.keys()))])
     attempts = fields.Integer(
         required=False,
         allow_none=True,
-        missing=0,
-        default=0)
+        load_default=0,
+        dump_default=0)
     log = fields.String(required=False, allow_none=True)
     entry_point = fields.String(required=False, allow_none=True)
     replicas = fields.Integer(
         required=False,
         allow_none=True,
-        missing=1,
-        default=1)
+        load_default=1,
+        dump_default=1)
     request_memory = fields.String(
         required=False,
         allow_none=True,
-        missing='128M',
-        default='128M')
+        load_default='128M',
+        dump_default='128M')
     limit_memory = fields.String(required=False, allow_none=True)
     request_cpu = fields.String(
         required=False,
         allow_none=True,
-        missing='500m',
-        default='500m')
+        load_default='500m',
+        dump_default='500m')
     limit_cpu = fields.String(
         required=False,
         allow_none=True,
-        missing='1000m',
-        default='1000m')
+        load_default='1000m',
+        dump_default='1000m')
     base_service_url = fields.String(required=False, allow_none=True)
     port = fields.Integer(required=False, allow_none=True)
     extra_parameters = fields.String(required=False, allow_none=True)
@@ -281,40 +281,40 @@ class DeploymentItemResponseSchema(BaseSchema):
     enabled = fields.Boolean(
         required=False,
         allow_none=True,
-        missing=False,
-        default=False)
-    current_status = fields.String(required=False, allow_none=True, missing=DeploymentStatus.PENDING, default=DeploymentStatus.PENDING,
+        load_default=False,
+        dump_default=False)
+    current_status = fields.String(required=False, allow_none=True, load_default=DeploymentStatus.PENDING, dump_default=DeploymentStatus.PENDING,
                                    validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
-    type = fields.String(required=False, allow_none=True, missing=DeploymentType.MODEL, default=DeploymentType.MODEL,
+    type = fields.String(required=False, allow_none=True, load_default=DeploymentType.MODEL, dump_default=DeploymentType.MODEL,
                          validate=[OneOf(list(DeploymentType.__dict__.keys()))])
     attempts = fields.Integer(
         required=False,
         allow_none=True,
-        missing=0,
-        default=0)
+        load_default=0,
+        dump_default=0)
     log = fields.String(required=False, allow_none=True)
     entry_point = fields.String(required=False, allow_none=True)
     replicas = fields.Integer(
         required=False,
         allow_none=True,
-        missing=1,
-        default=1)
+        load_default=1,
+        dump_default=1)
     request_memory = fields.String(
         required=False,
         allow_none=True,
-        missing='128M',
-        default='128M')
+        load_default='128M',
+        dump_default='128M')
     limit_memory = fields.String(required=False, allow_none=True)
     request_cpu = fields.String(
         required=False,
         allow_none=True,
-        missing='500m',
-        default='500m')
+        load_default='500m',
+        dump_default='500m')
     limit_cpu = fields.String(
         required=False,
         allow_none=True,
-        missing='1000m',
-        default='1000m')
+        load_default='1000m',
+        dump_default='1000m')
     base_service_url = fields.String(required=False, allow_none=True)
     port = fields.Integer(required=False, allow_none=True)
     extra_parameters = fields.String(required=False, allow_none=True)
@@ -412,8 +412,8 @@ class DeploymentLogCreateRequestSchema(BaseSchema):
     date = fields.DateTime(
         required=False,
         allow_none=True,
-        missing=datetime.datetime.utcnow,
-        default=datetime.datetime.utcnow)
+        load_default=datetime.datetime.utcnow,
+        dump_default=datetime.datetime.utcnow)
     status = fields.String(required=True,
                            validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
     log = fields.String(required=True)
@@ -435,8 +435,8 @@ class DeploymentLogListResponseSchema(BaseSchema):
     date = fields.DateTime(
         required=False,
         allow_none=True,
-        missing=datetime.datetime.utcnow,
-        default=datetime.datetime.utcnow)
+        load_default=datetime.datetime.utcnow,
+        dump_default=datetime.datetime.utcnow)
     status = fields.String(required=True,
                            validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
     log = fields.String(required=True)
@@ -458,8 +458,8 @@ class DeploymentLogItemResponseSchema(BaseSchema):
     date = fields.DateTime(
         required=False,
         allow_none=True,
-        missing=datetime.datetime.utcnow,
-        default=datetime.datetime.utcnow)
+        load_default=datetime.datetime.utcnow,
+        dump_default=datetime.datetime.utcnow)
     status = fields.String(required=True,
                            validate=[OneOf(list(DeploymentStatus.__dict__.keys()))])
     log = fields.String(required=True)
