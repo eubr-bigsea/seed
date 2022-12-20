@@ -131,8 +131,11 @@ def main(is_main_module):
         app.config['SQLALCHEMY_DATABASE_URI'] = server_config.get(
             'database_url')
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-        app.config['SQLALCHEMY_POOL_SIZE'] = 10
-        app.config['SQLALCHEMY_POOL_RECYCLE'] = 240
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+             'pool_size': 10,
+             'pool_recycle': 60,
+             'pool_pre_ping': True
+        }
 
         app.config['RQ_REDIS_URL'] = config['servers']['redis_url']
 
