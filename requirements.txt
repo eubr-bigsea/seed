@@ -4,7 +4,7 @@ Flask-Migrate==3.1.0
 Flask-RESTful==0.3.9
 Flask-RQ2==18.3
 Flask-SQLAlchemy==2.5.1
-Flask==2.0.1
+Flask==2.3.2
 PyMySQL==1.0.2
 SQLAlchemy-i18n==1.1.0
 SQLAlchemy==1.4.24
